@@ -1,6 +1,6 @@
-import 'dart:async';
+kimport 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:external_app_launcher/external_app_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'dart:math' as math;
 
 void main() {
@@ -16,7 +16,7 @@ class FFBoostAppPremium extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'FF Boost Premium',
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF050805), // Ultra Dark Background
+        scaffoldBackgroundColor: const Color(0xFF050805),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.greenAccent,
           brightness: Brightness.dark,
@@ -46,20 +46,16 @@ class PremiumBoostPanel extends StatefulWidget {
   State<PremiumBoostPanel> createState() => _PremiumBoostPanelState();
 }
 
-class _PremiumBoostPanelState extends State<PremiumBoostPanel>
-    with TickerProviderStateMixin {
-  // Simulation Variables
-  double _ramValue = 0.78; // Initial high RAM usage (78%)
+class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProviderStateMixin {
+  double _ramValue = 0.78; 
   bool _isBoosting = false;
   bool _showLetsPlay = false;
 
-  // Controllers for animations
   late AnimationController _spinController;
 
   @override
   void initState() {
     super.initState();
-    // Controller for spinning the RAM circle continuously during boost
     _spinController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -72,33 +68,40 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
     super.dispose();
   }
 
-  // --- CORE LOGIC ---
-
+  // --- NEW LAUNCH LOGIC ---
   Future<void> launchFreeFire() async {
-    await LaunchApp.openApp(
-      androidPackageName: 'com.dts.freefireth',
-      openStore: true,
-    );
+    try {
+      const intent = AndroidIntent(
+        action: 'android.intent.action.MAIN',
+        category: 'android.intent.category.LAUNCHER',
+        package: 'com.dts.freefireth', // Free Fire Package
+      );
+      await intent.launch();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Free Fire is not installed on this device!"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
-  // The main boosting simulation function
   void startBoostProcess() {
     if (_isBoosting) return;
 
     setState(() {
       _isBoosting = true;
-      _showLetsPlay = false; // Hide "Let's Play" if it was shown before
+      _showLetsPlay = false; 
     });
-    _spinController.repeat(); // Start spinning animation
+    _spinController.repeat(); 
 
-    // Simulate a 3-second boosting process
     Timer(const Duration(seconds: 3), () {
-      _spinController.stop(); // Stop spinning
+      _spinController.stop(); 
       setState(() {
         _isBoosting = false;
-        // Simulate RAM dropping to a random low value between 30% and 45%
         _ramValue = (30 + math.Random().nextInt(15)) / 100.0;
-        _showLetsPlay = true; // Trigger bottom animation
+        _showLetsPlay = true; 
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -111,8 +114,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
     });
   }
 
-  // --- UI BUILD ---
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,16 +121,13 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
         title: const Text('FF GAMING HUB'),
         leading: const Icon(Icons.menu),
         actions: [
-          IconButton(
-              onPressed: () {}, icon: const Icon(Icons.notifications_none))
+          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none))
         ],
       ),
       body: Container(
         decoration: const BoxDecoration(
-            // Subtle background radial gradient for premium feel
             image: DecorationImage(
-                image: NetworkImage(
-                    "https://i.imgur.com/LoadH9S.png"), // Optional dark gaming pattern BG
+                image: NetworkImage("https://i.imgur.com/LoadH9S.png"), 
                 opacity: 0.05,
                 fit: BoxFit.cover)),
         child: SingleChildScrollView(
@@ -151,7 +149,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
     );
   }
 
-  // 1. The Main RAM Monitor Card Widget
   Widget _buildRamMonitorCard() {
     return Container(
       width: double.infinity,
@@ -160,22 +157,15 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
         gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF1A221A),
-              Colors.greenAccent.withOpacity(0.05)
-            ]),
+            colors: [const Color(0xFF1A221A), Colors.greenAccent.withOpacity(0.05)]),
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.greenAccent.withOpacity(0.3), width: 1),
         boxShadow: [
-          BoxShadow(
-              color: Colors.greenAccent.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 5))
+          BoxShadow(color: Colors.greenAccent.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 5))
         ],
       ),
       child: Column(
         children: [
-          // Animated Progress Indicator
           Stack(
             alignment: Alignment.center,
             children: [
@@ -184,13 +174,12 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
                 child: SizedBox(
                   width: 180,
                   height: 180,
-                  // TweenAnimationBuilder makes the value change smooth
                   child: TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: _ramValue),
                     duration: const Duration(seconds: 1),
                     builder: (context, value, child) {
                       return CircularProgressIndicator(
-                        value: _isBoosting ? null : value, // Null shows loading spinner during boost
+                        value: _isBoosting ? null : value, 
                         strokeWidth: 14,
                         backgroundColor: Colors.white10,
                         valueColor: AlwaysStoppedAnimation<Color>(
@@ -207,17 +196,13 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
                   Text(_isBoosting ? "OPTIMIZING..." : "RAM USED",
                       style: TextStyle(color: Colors.grey.shade400, letterSpacing: 1)),
                   const SizedBox(height: 5),
-                  // Smooth number transition
                   TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: _ramValue),
                     duration: const Duration(milliseconds: 800),
                     builder: (context, value, child) {
                       return Text(
                         _isBoosting ? "--" : "${(value * 100).toInt()}%",
-                        style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white),
+                        style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white),
                       );
                     },
                   ),
@@ -227,7 +212,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
           ),
           const SizedBox(height: 30),
           
-          // The Boost Button with Active/Inactive State
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             height: 60,
@@ -258,11 +242,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
                       if (_isBoosting) const SizedBox(width: 15),
                       Text(
                         _isBoosting ? "BOOSTING..." : "BOOST RAM NOW",
-                        style: TextStyle(
-                            color: _isBoosting ? Colors.white54 : Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            letterSpacing: 1),
+                        style: TextStyle(color: _isBoosting ? Colors.white54 : Colors.black, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 1),
                       ),
                     ],
                   ),
@@ -275,30 +255,23 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
     );
   }
 
-  // 2. The Grid Buttons Widget
   Widget _buildActionGrid() {
     return Row(
       children: [
         Expanded(
-          child: _buildPremiumActionButton(
-            "GFX TOOL", Icons.settings_suggest_outlined, Colors.orangeAccent, () {
+          child: _buildPremiumActionButton("GFX TOOL", Icons.settings_suggest_outlined, Colors.orangeAccent, () {
                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("GFX Settings Coming Soon!")));
-            }
-          ),
+          }),
         ),
         const SizedBox(width: 20),
         Expanded(
-          child: _buildPremiumActionButton(
-            "LAUNCH FF", Icons.rocket_launch, Colors.white, launchFreeFire
-          ),
+          child: _buildPremiumActionButton("LAUNCH FF", Icons.rocket_launch, Colors.white, launchFreeFire),
         ),
       ],
     );
   }
 
-  // Helper for Action Buttons
-  Widget _buildPremiumActionButton(
-      String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildPremiumActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
     return Container(
       height: 120,
       decoration: BoxDecoration(
@@ -317,9 +290,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
             children: [
               Icon(icon, size: 40, color: color),
               const SizedBox(height: 12),
-              Text(title,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color)),
             ],
           ),
         ),
@@ -327,40 +298,26 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel>
     );
   }
 
-  // 3. The Animated Bottom Section ("Let's Play Game")
   Widget _buildBottomAnimationSection() {
     return AnimatedCrossFade(
       duration: const Duration(milliseconds: 800),
-      firstChild: Column( // State 1: Before Boost
+      firstChild: Column(
         children: [
           Icon(Icons.security, size: 70, color: Colors.greenAccent.withOpacity(0.5)),
           const SizedBox(height: 10),
           Text("SYSTEM READY", style: TextStyle(color: Colors.greenAccent.withOpacity(0.7), letterSpacing: 2)),
         ],
       ),
-      secondChild: Column( // State 2: After Boost (The "Furniture" text)
+      secondChild: Column(
         children: [
           ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Colors.greenAccent, Colors.blueAccent],
-            ).createShader(bounds),
+            shaderCallback: (bounds) => const LinearGradient(colors: [Colors.greenAccent, Colors.blueAccent]).createShader(bounds),
             child: const Icon(Icons.sports_esports_rounded, size: 80, color: Colors.white),
           ),
            const SizedBox(height: 10),
            ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Colors.white, Colors.greenAccent],
-              begin: Alignment.topCenter, end: Alignment.bottomCenter
-            ).createShader(bounds),
-             child: const Text(
-              "LET'S PLAY GAME",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Colors.white, // Required for ShaderMask
-                letterSpacing: 1.5,
-              ),
-                     ),
+            shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.greenAccent], begin: Alignment.topCenter, end: Alignment.bottomCenter).createShader(bounds),
+             child: const Text("LET'S PLAY GAME", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)),
            ),
         ],
       ),
