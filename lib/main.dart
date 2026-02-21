@@ -1,4 +1,4 @@
-kimport 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'dart:math' as math;
