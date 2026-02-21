@@ -1,14 +1,29 @@
-plugins {
+kkkplugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val flutterVersionCode = project.findProperty("flutter.versionCode") as String? ?: "1"
+val flutterVersionName = project.findProperty("flutter.versionName") as String? ?: "1.0.0"
+
 android {
-    namespace = "com.example.ff_boost_premium"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace = "com.mdzaberahmed.ffboostpanel"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.mdzaberahmed.ffboostpanel"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -16,26 +31,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
-    defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.ff_boost_premium"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-        }
+        jvmTarget = "17"
     }
 }
 
