@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:android_intent_plus/android_intent.dart';
+import 'package:flutter/services.dart';
 import 'dart:math' as math;
 
 void main() {
@@ -54,31 +54,52 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   bool _isBoosting = false;
   bool _showLetsPlay = false;
   late AnimationController _spinController;
+  
+  int _ping = 45;
+  int _temp = 38;
+  Timer? _statsTimer;
+
+  static const platform = MethodChannel('com.ffboost/launcher');
 
   @override
   void initState() {
     super.initState();
     _spinController = AnimationController(duration: const Duration(seconds: 2), vsync: this);
+    
+    _statsTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if(mounted) {
+        setState(() {
+          _ping = 40 + math.Random().nextInt(25); 
+          _temp = 35 + math.Random().nextInt(8);  
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _spinController.dispose();
+    _statsTimer?.cancel();
     super.dispose();
   }
 
   Future<void> launchFreeFire() async {
     try {
-      const intent = AndroidIntent(
-        action: 'android.intent.action.MAIN',
-        category: 'android.intent.category.LAUNCHER',
-        package: 'com.dts.freefireth',
-      );
-      await intent.launch();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Free Fire is not installed on this device!"), backgroundColor: Colors.redAccent),
-      );
+      final bool isFFNormalOpened = await platform.invokeMethod('launchGame', {'package': 'com.dts.freefireth'});
+      if (!isFFNormalOpened) {
+        final bool isFFMaxOpened = await platform.invokeMethod('launchGame', {'package': 'com.dts.freefiremax'});
+        if (!isFFMaxOpened && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Free Fire or Free Fire Max is not installed!"), backgroundColor: Colors.redAccent),
+          );
+        }
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to launch game!"), backgroundColor: Colors.redAccent),
+        );
+      }
     }
   }
 
@@ -92,19 +113,23 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
 
     Timer(const Duration(seconds: 3), () {
       _spinController.stop();
-      setState(() {
-        _isBoosting = false;
-        _ramValue = (30 + math.Random().nextInt(15)) / 100.0;
-        _showLetsPlay = true;
-      });
+      if (mounted) {
+        setState(() {
+          _isBoosting = false;
+          _ramValue = (30 + math.Random().nextInt(15)) / 100.0;
+          _showLetsPlay = true;
+          _temp = 32; 
+          _ping = 35; 
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Device Optimized for Maximum Performance!"),
-          backgroundColor: Colors.greenAccent.shade700,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Device Optimized for Maximum Performance!"),
+            backgroundColor: Colors.greenAccent.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     });
   }
 
@@ -127,8 +152,50 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
             children: [
               const SizedBox(height: 10),
               _buildRamMonitorCard(),
-              const SizedBox(height: 30),
-              _buildActionGrid(),
+              const SizedBox(height: 20),
+              _buildSystemStatsRow(),
+              const SizedBox(height: 20),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildPremiumActionButton("GFX TOOL", Icons.settings_suggest_outlined, Colors.orangeAccent, () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage()));
+                    }),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: _buildPremiumActionButton("CROSSHAIR", Icons.my_location, Colors.cyanAccent, () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const CrosshairPage()));
+                    }),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              
+              InkWell(
+                onTap: launchFreeFire,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  height: 80,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF2A2A2A), Color(0xFF1A1A1A)]),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white24, width: 1.5),
+                    boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.05), blurRadius: 10)],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.rocket_launch, color: Colors.white, size: 30),
+                      SizedBox(width: 15),
+                      Text("LAUNCH FREE FIRE", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 40),
               _buildBottomAnimationSection(),
               const SizedBox(height: 20),
@@ -136,6 +203,42 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSystemStatsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.network_ping, color: Colors.blueAccent, size: 24),
+                const SizedBox(width: 10),
+                Text("$_ping ms", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.thermostat, color: Colors.redAccent, size: 24),
+                const SizedBox(width: 10),
+                Text("$_temp°C", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -219,30 +322,15 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     );
   }
 
-  Widget _buildActionGrid() {
-    return Row(
-      children: [
-        // NEW GFX TOOL NAVIGATION
-        Expanded(
-          child: _buildPremiumActionButton("GFX TOOL", Icons.settings_suggest_outlined, Colors.orangeAccent, () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage()));
-          }),
-        ),
-        const SizedBox(width: 20),
-        Expanded(child: _buildPremiumActionButton("LAUNCH FF", Icons.rocket_launch, Colors.white, launchFreeFire)),
-      ],
-    );
-  }
-
   Widget _buildPremiumActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
     return Container(
-      height: 120,
-      decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(25), border: Border.all(color: color.withOpacity(0.15)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
+      height: 110,
+      decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.15)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap, borderRadius: BorderRadius.circular(25),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 40, color: color), const SizedBox(height: 12), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: color))]),
+          onTap: onTap, borderRadius: BorderRadius.circular(20),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 35, color: color), const SizedBox(height: 10), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color))]),
         ),
       ),
     );
@@ -261,13 +349,11 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     );
   }
 }
-
 // ==========================================
-// 2. NEW GFX TOOL PAGE
+// 2. GFX TOOL PAGE
 // ==========================================
 class GfxToolPage extends StatefulWidget {
   const GfxToolPage({super.key});
-
   @override
   State<GfxToolPage> createState() => _GfxToolPageState();
 }
@@ -282,10 +368,10 @@ class _GfxToolPageState extends State<GfxToolPage> {
     setState(() => isApplying = true);
     Timer(const Duration(seconds: 2), () {
       setState(() => isApplying = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("GFX Settings Applied Successfully!"), backgroundColor: Colors.greenAccent),
-      );
-      Navigator.pop(context); // Go back to home
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("GFX Settings Applied Successfully!"), backgroundColor: Colors.greenAccent));
+        Navigator.pop(context);
+      }
     });
   }
 
@@ -299,33 +385,20 @@ class _GfxToolPageState extends State<GfxToolPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSectionTitle("RESOLUTION"),
-            _buildOptionsRow(["720p", "1080p", "1440p"], selectedRes, (val) => setState(() => selectedRes = val)),
-            
+            _buildOptionsRow(["720p", "1080p", "1440p"], selectedRes, (val) => setState(() => selectedRes = val), Colors.orangeAccent),
             const SizedBox(height: 25),
             _buildSectionTitle("FPS (FRAMES PER SECOND)"),
-            _buildOptionsRow(["30 FPS", "60 FPS", "90 FPS"], selectedFPS, (val) => setState(() => selectedFPS = val)),
-            
+            _buildOptionsRow(["30 FPS", "60 FPS", "90 FPS"], selectedFPS, (val) => setState(() => selectedFPS = val), Colors.orangeAccent),
             const SizedBox(height: 25),
             _buildSectionTitle("GRAPHICS QUALITY"),
-            _buildOptionsRow(["Smooth", "Balanced", "HDR"], selectedGraphics, (val) => setState(() => selectedGraphics = val)),
-            
+            _buildOptionsRow(["Smooth", "Balanced", "HDR"], selectedGraphics, (val) => setState(() => selectedGraphics = val), Colors.orangeAccent),
             const SizedBox(height: 50),
-            
-            // Apply Button
             InkWell(
               onTap: isApplying ? null : applySettings,
               child: Container(
                 height: 60, width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange]),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [BoxShadow(color: Colors.orange.withOpacity(0.3), blurRadius: 10)]
-                ),
-                child: Center(
-                  child: isApplying 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("APPLY SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                ),
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange]), borderRadius: BorderRadius.circular(15)),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
               ),
             )
           ],
@@ -335,38 +408,111 @@ class _GfxToolPageState extends State<GfxToolPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-    );
+    return Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)));
   }
 
-  Widget _buildOptionsRow(List<String> options, String currentValue, Function(String) onSelect) {
+  Widget _buildOptionsRow(List<String> options, String currentValue, Function(String) onSelect, Color activeColor) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: options.map((opt) {
         bool isSelected = currentValue == opt;
         return Expanded(
           child: GestureDetector(
             onTap: () => onSelect(opt),
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.orangeAccent.withOpacity(0.2) : const Color(0xFF1A221A),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isSelected ? Colors.orangeAccent : Colors.white10),
-              ),
-              child: Center(
-                child: Text(opt, style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.orangeAccent : Colors.white54
-                )),
-              ),
+              margin: const EdgeInsets.symmetric(horizontal: 4), padding: const EdgeInsets.symmetric(vertical: 15),
+              decoration: BoxDecoration(color: isSelected ? activeColor.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(12), border: Border.all(color: isSelected ? activeColor : Colors.white10)),
+              child: Center(child: Text(opt, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? activeColor : Colors.white54))),
             ),
           ),
         );
       }).toList(),
+    );
+  }
+}
+
+// ==========================================
+// 3. CROSSHAIR PAGE
+// ==========================================
+class CrosshairPage extends StatefulWidget {
+  const CrosshairPage({super.key});
+  @override
+  State<CrosshairPage> createState() => _CrosshairPageState();
+}
+
+class _CrosshairPageState extends State<CrosshairPage> {
+  IconData selectedIcon = Icons.add;
+  Color selectedColor = Colors.redAccent;
+  bool isApplying = false;
+
+  final List<IconData> crosshairs = [Icons.add, Icons.gps_fixed, Icons.my_location, Icons.control_camera, Icons.filter_center_focus, Icons.track_changes];
+  final List<Color> colors = [Colors.redAccent, Colors.greenAccent, Colors.yellowAccent, Colors.white, Colors.cyanAccent, Colors.purpleAccent];
+
+  void activateCrosshair() {
+    setState(() => isApplying = true);
+    Timer(const Duration(seconds: 2), () {
+      setState(() => isApplying = false);
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Custom Crosshair Activated Successfully!"), backgroundColor: Colors.cyan));
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("CUSTOM CROSSHAIR", style: TextStyle(color: Colors.cyanAccent))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 150, height: 150,
+                decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.cyanAccent.withOpacity(0.3))),
+                child: Center(child: Icon(selectedIcon, size: 60, color: selectedColor)),
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Text("SELECT STYLE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+            const SizedBox(height: 15),
+            Wrap(
+              spacing: 15, runSpacing: 15,
+              children: crosshairs.map((icon) => GestureDetector(
+                onTap: () => setState(() => selectedIcon = icon),
+                child: Container(
+                  width: 60, height: 60,
+                  decoration: BoxDecoration(color: selectedIcon == icon ? Colors.cyanAccent.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: selectedIcon == icon ? Colors.cyanAccent : Colors.white10)),
+                  child: Icon(icon, color: selectedIcon == icon ? Colors.cyanAccent : Colors.white54),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 30),
+            const Text("SELECT COLOR", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+            const SizedBox(height: 15),
+            Wrap(
+              spacing: 15, runSpacing: 15,
+              children: colors.map((color) => GestureDetector(
+                onTap: () => setState(() => selectedColor = color),
+                child: Container(
+                  width: 50, height: 50,
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: selectedColor == color ? Colors.white : Colors.transparent, width: 3)),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 50),
+            InkWell(
+              onTap: isApplying ? null : activateCrosshair,
+              child: Container(
+                height: 60, width: double.infinity,
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent]), borderRadius: BorderRadius.circular(15)),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("ACTIVATE CROSSHAIR", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
