@@ -233,7 +233,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     );
   }
 }
-
 // ==========================================
 // 2. GFX TOOL PAGE
 // ==========================================
@@ -366,4 +365,113 @@ class _CrosshairPageState extends State<CrosshairPage> {
               spacing: 15, runSpacing: 15,
               children: crosshairs.map((icon) => GestureDetector(
                 onTap: () => setState(() => selectedIcon = icon),
-           
+                child: Container(
+                  width: 60, height: 60,
+                  decoration: BoxDecoration(color: selectedIcon == icon ? Colors.cyanAccent.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: selectedIcon == icon ? Colors.cyanAccent : Colors.white10)),
+                  child: Icon(icon, color: selectedIcon == icon ? Colors.cyanAccent : Colors.white54),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 30),
+            const Text("SELECT COLOR", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+            const SizedBox(height: 15),
+            Wrap(
+              spacing: 15, runSpacing: 15,
+              children: colors.map((color) => GestureDetector(
+                onTap: () => setState(() => selectedColor = color),
+                child: Container(
+                  width: 50, height: 50,
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: selectedColor == color ? Colors.white : Colors.transparent, width: 3)),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 50),
+            InkWell(
+              onTap: isApplying ? null : activateCrosshair,
+              child: Container(
+                height: 60, width: double.infinity,
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent]), borderRadius: BorderRadius.circular(15)),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("ACTIVATE CROSSHAIR", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 4. VIP SENSI PAGE
+// ==========================================
+class VipSensiPage extends StatefulWidget {
+  const VipSensiPage({super.key});
+  @override
+  State<VipSensiPage> createState() => _VipSensiPageState();
+}
+
+class _VipSensiPageState extends State<VipSensiPage> {
+  double general = 98;
+  double redDot = 95;
+  double scope2x = 90;
+  double scope4x = 85;
+  bool isApplying = false;
+
+  void applySensi() {
+    setState(() => isApplying = true);
+    Timer(const Duration(seconds: 2), () {
+      setState(() => isApplying = false);
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("VIP Headshot Sensi Applied Successfully!"), backgroundColor: Colors.purpleAccent));
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("VIP HEADSHOT SENSI", style: TextStyle(color: Colors.purpleAccent))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
+              child: Row(children: const [Icon(Icons.warning_amber_rounded, color: Colors.purpleAccent), SizedBox(width: 10), Expanded(child: Text("These sensitivity settings are optimized for maximum headshot accuracy.", style: TextStyle(color: Colors.white70, fontSize: 13)))]),
+            ),
+            const SizedBox(height: 30),
+            _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("2X SCOPE", scope2x, (val) => setState(() => scope2x = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
+            const SizedBox(height: 50),
+            InkWell(
+              onTap: isApplying ? null : applySensi,
+              child: Container(
+                height: 60, width: double.infinity,
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.deepPurpleAccent]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 10)]),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY VIP SENSI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSensiSlider(String title, double value, Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)), Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purpleAccent))]),
+        Slider(value: value, min: 0, max: 100, activeColor: Colors.purpleAccent, inactiveColor: Colors.white10, onChanged: onChanged),
+      ],
+    );
+  }
+}
