@@ -2,11 +2,7 @@
     package="com.mdzaberahmed.ffboostpanel">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
-    <queries>
-        <package android:name="com.dts.freefireth" />
-        <package android:name="com.dts.freefiremax" />
-    </queries>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <application
         android:label="FF Boost Premium"
@@ -30,8 +26,11 @@
             </intent-filter>
         </activity>
         
+        <meta-data android:name="flutterEmbedding" android:value="2" />
+        
         <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-1591007651969921~3667528944"/>
+            
     </application>
 </manifest>
