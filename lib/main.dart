@@ -1,11 +1,7 @@
-kimport 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
-=======
-import 'package:device_apps/device_apps.dart';
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
 import 'dart:math' as math;
 
 void main() {
@@ -47,12 +43,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   int _temp = 38;
   Timer? _statsTimer;
 
-  // Games List
-<<<<<<< HEAD
   List<AppInfo> _installedApps = [];
-=======
-  List<Application> _installedApps = [];
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
   bool _isLoadingApps = true;
 
   @override
@@ -65,8 +56,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     _loadApps();
   }
 
-<<<<<<< HEAD
-  // Filter only games using modern package
   void _loadApps() async {
     try {
       List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
@@ -90,33 +79,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
           _isLoadingApps = false;
         });
       }
-=======
-  // Filter only games
-  void _loadApps() async {
-    List<Application> apps = await DeviceApps.getInstalledApplications(
-      includeAppIcons: true,
-      includeSystemApps: false,
-      onlyAppsWithLaunchIntent: true,
-    );
-
-    List<Application> gameApps = apps.where((app) {
-      // Check system category for game
-      if (app.category == ApplicationCategory.game) return true;
-      
-      // Fallback: Check package name for popular games
-      String pkg = app.packageName.toLowerCase();
-      if (pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox')) {
-        return true;
-      }
-      return false;
-    }).toList();
-
-    if(mounted) {
-      setState(() {
-        _installedApps = gameApps;
-        _isLoadingApps = false;
-      });
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
     }
   }
 
@@ -174,7 +136,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
               ),
               const SizedBox(height: 25),
               
-              // ONLY GAMES LAUNCHER SECTION
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -189,15 +150,9 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                             scrollDirection: Axis.horizontal,
                             itemCount: _installedApps.length,
                             itemBuilder: (context, index) {
-<<<<<<< HEAD
                               AppInfo app = _installedApps[index];
                               return GestureDetector(
                                 onTap: () => InstalledApps.startApp(app.packageName!),
-=======
-                              Application app = _installedApps[index];
-                              return GestureDetector(
-                                onTap: () => app.openApp(),
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
                                 child: Container(
                                   width: 75, margin: const EdgeInsets.only(right: 12),
                                   child: Column(
@@ -205,17 +160,10 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
-<<<<<<< HEAD
                                         child: app.icon != null ? Image.memory(app.icon!, width: 40, height: 40) : const Icon(Icons.sports_esports, color: Colors.greenAccent, size: 40),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(app.name ?? 'Game', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-=======
-                                        child: app is ApplicationWithIcon ? Image.memory(app.icon, width: 40, height: 40) : const Icon(Icons.sports_esports, color: Colors.greenAccent, size: 40),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(app.appName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)),
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
                                     ],
                                   ),
                                 ),
@@ -244,7 +192,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
       ],
     );
   }
-<<<<<<< HEAD
 
   Widget _buildRamMonitorCard() {
     return Container(
@@ -286,6 +233,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     );
   }
 }
+
 // ==========================================
 // 2. GFX TOOL PAGE
 // ==========================================
@@ -366,88 +314,6 @@ class _GfxToolPageState extends State<GfxToolPage> {
     );
   }
 }
-=======
-// ==========================================
-// 2. GFX TOOL PAGE
-// ==========================================
-class GfxToolPage extends StatefulWidget {
-  const GfxToolPage({super.key});
-  @override
-  State<GfxToolPage> createState() => _GfxToolPageState();
-}
-
-class _GfxToolPageState extends State<GfxToolPage> {
-  String selectedRes = "1080p";
-  String selectedFPS = "60 FPS";
-  String selectedGraphics = "Smooth";
-  bool isApplying = false;
-
-  void applySettings() {
-    setState(() => isApplying = true);
-    Timer(const Duration(seconds: 2), () {
-      setState(() => isApplying = false);
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("GFX Settings Applied Successfully!"), backgroundColor: Colors.greenAccent));
-        Navigator.pop(context);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("GFX SETTINGS", style: TextStyle(color: Colors.orangeAccent))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("RESOLUTION"),
-            _buildOptionsRow(["720p", "1080p", "1440p"], selectedRes, (val) => setState(() => selectedRes = val), Colors.orangeAccent),
-            const SizedBox(height: 25),
-            _buildSectionTitle("FPS (FRAMES PER SECOND)"),
-            _buildOptionsRow(["30 FPS", "60 FPS", "90 FPS"], selectedFPS, (val) => setState(() => selectedFPS = val), Colors.orangeAccent),
-            const SizedBox(height: 25),
-            _buildSectionTitle("GRAPHICS QUALITY"),
-            _buildOptionsRow(["Smooth", "Balanced", "HDR"], selectedGraphics, (val) => setState(() => selectedGraphics = val), Colors.orangeAccent),
-            const SizedBox(height: 50),
-            InkWell(
-              onTap: isApplying ? null : applySettings,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange]), borderRadius: BorderRadius.circular(15)),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)));
-  }
-
-  Widget _buildOptionsRow(List<String> options, String currentValue, Function(String) onSelect, Color activeColor) {
-    return Row(
-      children: options.map((opt) {
-        bool isSelected = currentValue == opt;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => onSelect(opt),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4), padding: const EdgeInsets.symmetric(vertical: 15),
-              decoration: BoxDecoration(color: isSelected ? activeColor.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(12), border: Border.all(color: isSelected ? activeColor : Colors.white10)),
-              child: Center(child: Text(opt, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? activeColor : Colors.white54))),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
 
 // ==========================================
 // 3. CROSSHAIR PAGE
@@ -500,117 +366,4 @@ class _CrosshairPageState extends State<CrosshairPage> {
               spacing: 15, runSpacing: 15,
               children: crosshairs.map((icon) => GestureDetector(
                 onTap: () => setState(() => selectedIcon = icon),
-                child: Container(
-                  width: 60, height: 60,
-                  decoration: BoxDecoration(color: selectedIcon == icon ? Colors.cyanAccent.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: selectedIcon == icon ? Colors.cyanAccent : Colors.white10)),
-                  child: Icon(icon, color: selectedIcon == icon ? Colors.cyanAccent : Colors.white54),
-                ),
-              )).toList(),
-            ),
-            const SizedBox(height: 30),
-            const Text("SELECT COLOR", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-            const SizedBox(height: 15),
-            Wrap(
-              spacing: 15, runSpacing: 15,
-              children: colors.map((color) => GestureDetector(
-                onTap: () => setState(() => selectedColor = color),
-                child: Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: selectedColor == color ? Colors.white : Colors.transparent, width: 3)),
-                ),
-              )).toList(),
-            ),
-            const SizedBox(height: 50),
-            InkWell(
-              onTap: isApplying ? null : activateCrosshair,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent]), borderRadius: BorderRadius.circular(15)),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("ACTIVATE CROSSHAIR", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ==========================================
-// 4. VIP SENSI PAGE
-// ==========================================
-class VipSensiPage extends StatefulWidget {
-  const VipSensiPage({super.key});
-  @override
-  State<VipSensiPage> createState() => _VipSensiPageState();
-}
-
-class _VipSensiPageState extends State<VipSensiPage> {
-  double general = 98;
-  double redDot = 95;
-  double scope2x = 90;
-  double scope4x = 85;
-  bool isApplying = false;
-
-  void applySensi() {
-    setState(() => isApplying = true);
-    Timer(const Duration(seconds: 2), () {
-      setState(() => isApplying = false);
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("VIP Headshot Sensi Applied Successfully!"), backgroundColor: Colors.purpleAccent));
-        Navigator.pop(context);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("VIP HEADSHOT SENSI", style: TextStyle(color: Colors.purpleAccent))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
-              child: Row(children: const [Icon(Icons.warning_amber_rounded, color: Colors.purpleAccent), SizedBox(width: 10), Expanded(child: Text("These sensitivity settings are optimized for maximum headshot accuracy.", style: TextStyle(color: Colors.white70, fontSize: 13)))]),
-            ),
-            const SizedBox(height: 30),
-            _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("2X SCOPE", scope2x, (val) => setState(() => scope2x = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
-            const SizedBox(height: 50),
-            InkWell(
-              onTap: isApplying ? null : applySensi,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.deepPurpleAccent]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 10)]),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY VIP SENSI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSensiSlider(String title, double value, Function(double) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)), Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purpleAccent))]),
-        Slider(value: value, min: 0, max: 100, activeColor: Colors.purpleAccent, inactiveColor: Colors.white10, onChanged: onChanged),
-      ],
-    );
-  }
-}
-<<<<<<< HEAD
-=======
-  
->>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
+           
