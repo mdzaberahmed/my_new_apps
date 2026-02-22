@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
-  android_intent_plus: ^5.0.2
+  installed_apps: ^1.4.3
   device_info_plus: ^10.1.0 
 
 dev_dependencies:
