@@ -10,8 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.6
+<<<<<<< HEAD
   installed_apps: ^1.4.3
   device_info_plus: ^10.1.0 
+=======
+  device_apps: ^2.2.0
+  device_info_plus: ^10.1.0
+  
+>>>>>>> cb2777a0bcd4722e79e8811bb1b2cd2b188716d3
 
 dev_dependencies:
   flutter_test:
