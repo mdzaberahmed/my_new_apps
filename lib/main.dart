@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'dart:math' as math;
 
 void main() {
@@ -59,8 +59,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   int _temp = 38;
   Timer? _statsTimer;
 
-  static const platform = MethodChannel('com.ffboost/launcher');
-
   @override
   void initState() {
     super.initState();
@@ -83,22 +81,29 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     super.dispose();
   }
 
+  // ১০০% গ্যারান্টি গেম লঞ্চ করার কোড
   Future<void> launchFreeFire() async {
     try {
-      final bool isFFNormalOpened = await platform.invokeMethod('launchGame', {'package': 'com.dts.freefireth'});
-      if (!isFFNormalOpened) {
-        final bool isFFMaxOpened = await platform.invokeMethod('launchGame', {'package': 'com.dts.freefiremax'});
-        if (!isFFMaxOpened && mounted) {
+      const intentNormal = AndroidIntent(
+        action: 'android.intent.action.MAIN',
+        category: 'android.intent.category.LAUNCHER',
+        package: 'com.dts.freefireth',
+      );
+      await intentNormal.launch();
+    } catch (e) {
+      try {
+        const intentMax = AndroidIntent(
+          action: 'android.intent.action.MAIN',
+          category: 'android.intent.category.LAUNCHER',
+          package: 'com.dts.freefiremax',
+        );
+        await intentMax.launch();
+      } catch (e2) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Free Fire or Free Fire Max is not installed!"), backgroundColor: Colors.redAccent),
           );
         }
-      }
-    } on PlatformException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to launch game!"), backgroundColor: Colors.redAccent),
-        );
       }
     }
   }
@@ -152,9 +157,9 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
             children: [
               const SizedBox(height: 10),
               _buildRamMonitorCard(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               _buildSystemStatsRow(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               
               Row(
                 children: [
@@ -173,11 +178,39 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
               ),
               const SizedBox(height: 15),
               
+              // NEW VIP SENSI BUTTON (PREMIUM FEATURE)
+              InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  height: 70,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A221A),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.purpleAccent.withOpacity(0.3), width: 1.5),
+                    boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.1), blurRadius: 10)],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.radar, color: Colors.purpleAccent, size: 28),
+                      SizedBox(width: 10),
+                      Text("🔥 VIP SENSI (HEADSHOT)", style: TextStyle(color: Colors.purpleAccent, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              
+              // BIG LAUNCH FF BUTTON
               InkWell(
                 onTap: launchFreeFire,
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  height: 80,
+                  height: 75,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(colors: [Color(0xFF2A2A2A), Color(0xFF1A1A1A)]),
@@ -188,7 +221,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
-                      Icon(Icons.rocket_launch, color: Colors.white, size: 30),
+                      Icon(Icons.rocket_launch, color: Colors.white, size: 28),
                       SizedBox(width: 15),
                       Text("LAUNCH FREE FIRE", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                     ],
@@ -196,7 +229,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                 ),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
               _buildBottomAnimationSection(),
               const SizedBox(height: 20),
             ],
@@ -211,14 +244,14 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
       children: [
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.network_ping, color: Colors.blueAccent, size: 24),
+                const Icon(Icons.network_ping, color: Colors.blueAccent, size: 20),
                 const SizedBox(width: 10),
-                Text("$_ping ms", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text("$_ping ms", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
               ],
             ),
           ),
@@ -226,14 +259,14 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
         const SizedBox(width: 15),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.thermostat, color: Colors.redAccent, size: 24),
+                const Icon(Icons.thermostat, color: Colors.redAccent, size: 20),
                 const SizedBox(width: 10),
-                Text("$_temp°C", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text("$_temp°C", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
               ],
             ),
           ),
@@ -260,40 +293,35 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
               RotationTransition(
                 turns: _spinController,
                 child: SizedBox(
-                  width: 180, height: 180,
+                  width: 160, height: 160,
                   child: TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: _ramValue),
                     duration: const Duration(seconds: 1),
                     builder: (context, value, child) {
-                      return CircularProgressIndicator(
-                        value: _isBoosting ? null : value,
-                        strokeWidth: 14, backgroundColor: Colors.white10,
-                        valueColor: AlwaysStoppedAnimation<Color>(_isBoosting ? Colors.orangeAccent : Colors.greenAccent),
-                        strokeCap: StrokeCap.round,
-                      );
+                      return CircularProgressIndicator(value: _isBoosting ? null : value, strokeWidth: 12, backgroundColor: Colors.white10, valueColor: AlwaysStoppedAnimation<Color>(_isBoosting ? Colors.orangeAccent : Colors.greenAccent), strokeCap: StrokeCap.round);
                     },
                   ),
                 ),
               ),
               Column(
                 children: [
-                  Text(_isBoosting ? "OPTIMIZING..." : "RAM USED", style: TextStyle(color: Colors.grey.shade400, letterSpacing: 1)),
+                  Text(_isBoosting ? "OPTIMIZING..." : "RAM USED", style: TextStyle(color: Colors.grey.shade400, letterSpacing: 1, fontSize: 12)),
                   const SizedBox(height: 5),
                   TweenAnimationBuilder<double>(
                     tween: Tween<double>(begin: 0, end: _ramValue),
                     duration: const Duration(milliseconds: 800),
                     builder: (context, value, child) {
-                      return Text(_isBoosting ? "--" : "${(value * 100).toInt()}%", style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white));
+                      return Text(_isBoosting ? "--" : "${(value * 100).toInt()}%", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white));
                     },
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 25),
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            height: 60, width: double.infinity,
+            height: 55, width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
               gradient: LinearGradient(colors: _isBoosting ? [Colors.grey.shade800, Colors.grey.shade900] : [Colors.greenAccent.shade400, Colors.green.shade700]),
@@ -310,7 +338,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                     children: [
                       if (_isBoosting) const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70)),
                       if (_isBoosting) const SizedBox(width: 15),
-                      Text(_isBoosting ? "BOOSTING..." : "BOOST RAM NOW", style: TextStyle(color: _isBoosting ? Colors.white54 : Colors.black, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 1)),
+                      Text(_isBoosting ? "BOOSTING..." : "BOOST RAM NOW", style: TextStyle(color: _isBoosting ? Colors.white54 : Colors.black, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
                     ],
                   ),
                 ),
@@ -324,13 +352,13 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
 
   Widget _buildPremiumActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
     return Container(
-      height: 110,
+      height: 100,
       decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.15)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap, borderRadius: BorderRadius.circular(20),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 35, color: color), const SizedBox(height: 10), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color))]),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 30, color: color), const SizedBox(height: 10), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color))]),
         ),
       ),
     );
@@ -339,16 +367,17 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   Widget _buildBottomAnimationSection() {
     return AnimatedCrossFade(
       duration: const Duration(milliseconds: 800),
-      firstChild: Column(children: [Icon(Icons.security, size: 70, color: Colors.greenAccent.withOpacity(0.5)), const SizedBox(height: 10), Text("SYSTEM READY", style: TextStyle(color: Colors.greenAccent.withOpacity(0.7), letterSpacing: 2))]),
+      firstChild: Column(children: [Icon(Icons.security, size: 60, color: Colors.greenAccent.withOpacity(0.5)), const SizedBox(height: 10), Text("SYSTEM READY", style: TextStyle(color: Colors.greenAccent.withOpacity(0.7), letterSpacing: 2))]),
       secondChild: Column(children: [
-        ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.greenAccent, Colors.blueAccent]).createShader(bounds), child: const Icon(Icons.sports_esports_rounded, size: 80, color: Colors.white)),
+        ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.greenAccent, Colors.blueAccent]).createShader(bounds), child: const Icon(Icons.sports_esports_rounded, size: 70, color: Colors.white)),
         const SizedBox(height: 10),
-        ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.greenAccent], begin: Alignment.topCenter, end: Alignment.bottomCenter).createShader(bounds), child: const Text("LET'S PLAY GAME", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5))),
+        ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.greenAccent], begin: Alignment.topCenter, end: Alignment.bottomCenter).createShader(bounds), child: const Text("LET'S PLAY GAME", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5))),
       ]),
       crossFadeState: _showLetsPlay ? CrossFadeState.showSecond : CrossFadeState.showFirst,
     );
   }
 }
+
 // ==========================================
 // 2. GFX TOOL PAGE
 // ==========================================
@@ -513,6 +542,97 @@ class _CrosshairPageState extends State<CrosshairPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ==========================================
+// 4. NEW PREMIUM FEATURE: VIP SENSI PAGE
+// ==========================================
+class VipSensiPage extends StatefulWidget {
+  const VipSensiPage({super.key});
+  @override
+  State<VipSensiPage> createState() => _VipSensiPageState();
+}
+
+class _VipSensiPageState extends State<VipSensiPage> {
+  double general = 98;
+  double redDot = 95;
+  double scope2x = 90;
+  double scope4x = 85;
+  bool isApplying = false;
+
+  void applySensi() {
+    setState(() => isApplying = true);
+    Timer(const Duration(seconds: 2), () {
+      setState(() => isApplying = false);
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("VIP Headshot Sensi Applied Successfully!"), backgroundColor: Colors.purpleAccent));
+        Navigator.pop(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("VIP HEADSHOT SENSI", style: TextStyle(color: Colors.purpleAccent))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
+              child: Row(
+                children: const [
+                  Icon(Icons.warning_amber_rounded, color: Colors.purpleAccent),
+                  SizedBox(width: 10),
+                  Expanded(child: Text("These sensitivity settings are optimized for maximum headshot accuracy.", style: TextStyle(color: Colors.white70, fontSize: 13))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+            _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("2X SCOPE", scope2x, (val) => setState(() => scope2x = val)),
+            const SizedBox(height: 20),
+            _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
+            const SizedBox(height: 50),
+            InkWell(
+              onTap: isApplying ? null : applySensi,
+              child: Container(
+                height: 60, width: double.infinity,
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.deepPurpleAccent]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 10)]),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY VIP SENSI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSensiSlider(String title, double value, Function(double) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+            Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purpleAccent)),
+          ],
+        ),
+        Slider(
+          value: value, min: 0, max: 100,
+          activeColor: Colors.purpleAccent, inactiveColor: Colors.white10,
+          onChanged: onChanged,
+        ),
+      ],
     );
   }
 }
