@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   installed_apps: ^1.4.3
   device_info_plus: ^10.1.0
+  google_mobile_ads: ^5.1.0
 
 dev_dependencies:
   flutter_test:
