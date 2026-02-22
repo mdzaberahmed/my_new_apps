@@ -1,10 +1,13 @@
-import 'dart:async';
+            import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:math' as math;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   runApp(const FFBoostAppPremium());
 }
 
@@ -34,26 +37,66 @@ class PremiumBoostPanel extends StatefulWidget {
 }
 
 class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProviderStateMixin {
-  double _ramValue = 0.78;
+  double _ramValue = 0.36;
   bool _isBoosting = false;
-  bool _showLetsPlay = false;
   late AnimationController _spinController;
-  
-  int _ping = 45;
-  int _temp = 38;
+  int _ping = 56;
+  int _temp = 39;
   Timer? _statsTimer;
 
   List<AppInfo> _installedApps = [];
   bool _isLoadingApps = true;
+
+  // শুধুমাত্র ভিআইপি বাটনের জন্য Rewarded Ad
+  RewardedAd? _rewardedAd;
 
   @override
   void initState() {
     super.initState();
     _spinController = AnimationController(duration: const Duration(seconds: 2), vsync: this);
     _statsTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if(mounted) setState(() { _ping = 40 + math.Random().nextInt(25); _temp = 35 + math.Random().nextInt(8); });
+      if(mounted) setState(() { _ping = 50 + math.Random().nextInt(10); _temp = 38 + math.Random().nextInt(4); });
     });
     _loadApps();
+    _loadRewardedAd(); // অ্যাপ ওপেন হলেই ভিডিও অ্যাড লোড হয়ে থাকবে
+  }
+
+  // আপনার আসল Rewarded ID দিয়ে অ্যাড লোড করা হচ্ছে
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: 'ca-app-pub-1591007651969921/1768812277', // Your Real Rewarded ID
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) => _rewardedAd = ad,
+        onAdFailedToLoad: (error) => _rewardedAd = null,
+      ),
+    );
+  }
+
+  // ভিআইপি বাটনে ক্লিক করলে এই ফাংশনটি কাজ করবে
+  void _showRewardedAdAndNavigate() {
+    if (_rewardedAd != null) {
+      _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _loadRewardedAd(); // পরের বারের জন্য আবার অ্যাড লোড করবে
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _loadRewardedAd();
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
+        },
+      );
+
+      // ভিডিও অ্যাড দেখা শেষ হলে ইউজারের পুরস্কার (VIP পেজে যাওয়া)
+      _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
+      });
+    } else {
+      // যদি নেট প্রবলেমের কারণে অ্যাড লোড না হয়, তবে এমনিতেই পেজে ঢুকতে দেবে
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
+      _loadRewardedAd();
+    }
   }
 
   void _loadApps() async {
@@ -61,24 +104,12 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
       List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
       List<AppInfo> gameApps = apps.where((app) {
         String pkg = app.packageName?.toLowerCase() ?? '';
-        if (pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox')) {
-          return true;
-        }
-        return false;
+        return pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox');
       }).toList();
 
-      if(mounted) {
-        setState(() {
-          _installedApps = gameApps;
-          _isLoadingApps = false;
-        });
-      }
+      if(mounted) setState(() { _installedApps = gameApps; _isLoadingApps = false; });
     } catch (e) {
-      if(mounted) {
-        setState(() {
-          _isLoadingApps = false;
-        });
-      }
+      if(mounted) setState(() => _isLoadingApps = false);
     }
   }
 
@@ -86,150 +117,147 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   void dispose() {
     _spinController.dispose();
     _statsTimer?.cancel();
+    _rewardedAd?.dispose();
     super.dispose();
-  }
-
-  void startBoostProcess() {
-    if (_isBoosting) return;
-    setState(() { _isBoosting = true; _showLetsPlay = false; });
-    _spinController.repeat();
-    Timer(const Duration(seconds: 3), () {
-      _spinController.stop();
-      if (mounted) {
-        setState(() { _isBoosting = false; _ramValue = (30 + math.Random().nextInt(15)) / 100.0; _showLetsPlay = true; _temp = 32; _ping = 35; });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text("Device Optimized!"), backgroundColor: Colors.greenAccent.shade700, behavior: SnackBarBehavior.floating));
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FF GAMING HUB'), leading: const Icon(Icons.menu), actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none))]),
-      body: Container(
-        decoration: const BoxDecoration(image: DecorationImage(image: NetworkImage("https://i.imgur.com/LoadH9S.png"), opacity: 0.05, fit: BoxFit.cover)),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildRamMonitorCard(),
-              const SizedBox(height: 15),
-              _buildSystemStatsRow(),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(child: _buildPremiumActionButton("GFX TOOL", Icons.settings_suggest_outlined, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage())))),
-                  const SizedBox(width: 15),
-                  Expanded(child: _buildPremiumActionButton("CROSSHAIR", Icons.my_location, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CrosshairPage())))),
-                ],
-              ),
-              const SizedBox(height: 15),
-              InkWell(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage())),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  height: 70, width: double.infinity,
-                  decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3), width: 1.5), boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.1), blurRadius: 10)]),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: const [Icon(Icons.radar, color: Colors.purpleAccent, size: 28), SizedBox(width: 10), Text("🔥 VIP SENSI (HEADSHOT)", style: TextStyle(color: Colors.purpleAccent, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2))]),
-                ),
-              ),
-              const SizedBox(height: 25),
-              
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(padding: EdgeInsets.only(left: 5, bottom: 15), child: Text("🎮 MY INSTALLED GAMES", style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2))),
-                  SizedBox(
-                    height: 90,
-                    child: _isLoadingApps 
-                      ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
-                      : _installedApps.isEmpty 
-                        ? const Center(child: Text("No games found on your device", style: TextStyle(color: Colors.white54)))
-                        : ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _installedApps.length,
-                            itemBuilder: (context, index) {
-                              AppInfo app = _installedApps[index];
-                              return GestureDetector(
-                                onTap: () => InstalledApps.startApp(app.packageName!),
-                                child: Container(
-                                  width: 75, margin: const EdgeInsets.only(right: 12),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)),
-                                        child: app.icon != null ? Image.memory(app.icon!, width: 40, height: 40) : const Icon(Icons.sports_esports, color: Colors.greenAccent, size: 40),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(app.name ?? 'Game', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              _buildBottomAnimationSection(),
-              const SizedBox(height: 20),
-            ],
-          ),
+      appBar: AppBar(title: const Text('FF GAMING HUB'), leading: const Icon(Icons.menu)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            _buildRamMonitorCard(),
+            const SizedBox(height: 15),
+            _buildStatsRow(),
+            const SizedBox(height: 15),
+            _buildToolsRow(),
+            const SizedBox(height: 15),
+            _buildVipSensiButton(),
+            const SizedBox(height: 25),
+            _buildGameLauncher(),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSystemStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.network_ping, color: Colors.blueAccent, size: 20), const SizedBox(width: 10), Text("$_ping ms", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white))]))),
-        const SizedBox(width: 15),
-        Expanded(child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.white10)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.thermostat, color: Colors.redAccent, size: 20), const SizedBox(width: 10), Text("$_temp°C", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white))]))),
-      ],
     );
   }
 
   Widget _buildRamMonitorCard() {
     return Container(
       width: double.infinity, padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [const Color(0xFF1A221A), Colors.greenAccent.withOpacity(0.05)]), borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.greenAccent.withOpacity(0.3), width: 1), boxShadow: [BoxShadow(color: Colors.greenAccent.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.greenAccent.withOpacity(0.3))),
       child: Column(
         children: [
           Stack(
             alignment: Alignment.center,
             children: [
-              RotationTransition(turns: _spinController, child: SizedBox(width: 160, height: 160, child: TweenAnimationBuilder<double>(tween: Tween<double>(begin: 0, end: _ramValue), duration: const Duration(seconds: 1), builder: (context, value, child) { return CircularProgressIndicator(value: _isBoosting ? null : value, strokeWidth: 12, backgroundColor: Colors.white10, valueColor: AlwaysStoppedAnimation<Color>(_isBoosting ? Colors.orangeAccent : Colors.greenAccent), strokeCap: StrokeCap.round); }))),
-              Column(children: [Text(_isBoosting ? "OPTIMIZING..." : "RAM USED", style: TextStyle(color: Colors.grey.shade400, letterSpacing: 1, fontSize: 12)), const SizedBox(height: 5), TweenAnimationBuilder<double>(tween: Tween<double>(begin: 0, end: _ramValue), duration: const Duration(milliseconds: 800), builder: (context, value, child) { return Text(_isBoosting ? "--" : "${(value * 100).toInt()}%", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white)); })]),
+              RotationTransition(turns: _spinController, child: SizedBox(width: 160, height: 160, child: CircularProgressIndicator(value: _isBoosting ? null : _ramValue, strokeWidth: 12, backgroundColor: Colors.white10, valueColor: AlwaysStoppedAnimation<Color>(_isBoosting ? Colors.orangeAccent : Colors.greenAccent)))),
+              Text("${(_ramValue * 100).toInt()}%", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 25),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300), height: 55, width: double.infinity,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), gradient: LinearGradient(colors: _isBoosting ? [Colors.grey.shade800, Colors.grey.shade900] : [Colors.greenAccent.shade400, Colors.green.shade700]), boxShadow: _isBoosting ? [] : [BoxShadow(color: Colors.greenAccent.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))]),
-            child: Material(color: Colors.transparent, child: InkWell(onTap: _isBoosting ? null : startBoostProcess, borderRadius: BorderRadius.circular(15), child: Center(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [if (_isBoosting) const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70)), if (_isBoosting) const SizedBox(width: 15), Text(_isBoosting ? "BOOSTING..." : "BOOST RAM NOW", style: TextStyle(color: _isBoosting ? Colors.white54 : Colors.black, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1))])))),
+          ElevatedButton(
+            onPressed: () {
+              setState(() => _isBoosting = true);
+              _spinController.repeat();
+              Timer(const Duration(seconds: 3), () {
+                _spinController.stop();
+                setState(() { _isBoosting = false; _ramValue = 0.30; });
+              });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, minimumSize: const Size(double.infinity, 50)),
+            child: const Text("BOOST RAM NOW", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPremiumActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
-    return Container(
-      height: 100, decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.15)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
-      child: Material(color: Colors.transparent, child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(20), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, size: 30, color: color), const SizedBox(height: 10), Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: color))]))),
+  Widget _buildStatsRow() {
+    return Row(
+      children: [
+        Expanded(child: _buildStatItem(Icons.network_ping, "$_ping ms", Colors.blueAccent)),
+        const SizedBox(width: 15),
+        Expanded(child: _buildStatItem(Icons.thermostat, "$_temp°C", Colors.redAccent)),
+      ],
     );
   }
 
-  Widget _buildBottomAnimationSection() {
-    return AnimatedCrossFade(
-      duration: const Duration(milliseconds: 800),
-      firstChild: Column(children: [Icon(Icons.security, size: 60, color: Colors.greenAccent.withOpacity(0.5)), const SizedBox(height: 10), Text("SYSTEM READY", style: TextStyle(color: Colors.greenAccent.withOpacity(0.7), letterSpacing: 2))]),
-      secondChild: Column(children: [ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.greenAccent, Colors.blueAccent]).createShader(bounds), child: const Icon(Icons.sports_esports_rounded, size: 70, color: Colors.white)), const SizedBox(height: 10), ShaderMask(shaderCallback: (bounds) => const LinearGradient(colors: [Colors.white, Colors.greenAccent], begin: Alignment.topCenter, end: Alignment.bottomCenter).createShader(bounds), child: const Text("LET'S PLAY", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5)))]),
-      crossFadeState: _showLetsPlay ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+  Widget _buildStatItem(IconData icon, String value, Color color) {
+    return Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 20), const SizedBox(width: 10), Text(value)]));
+  }
+
+  Widget _buildToolsRow() {
+    return Row(
+      children: [
+        Expanded(child: _buildToolBtn("GFX TOOL", Icons.settings_suggest, Colors.orangeAccent)),
+        const SizedBox(width: 15),
+        Expanded(child: _buildToolBtn("CROSSHAIR", Icons.my_location, Colors.cyanAccent)),
+      ],
+    );
+  }
+
+  Widget _buildToolBtn(String title, IconData icon, Color color) {
+    return Container(
+      height: 100, decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.2))),
+      child: InkWell(
+        onTap: () {
+          if (title == "GFX TOOL") {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage()));
+          } else {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const CrosshairPage()));
+          }
+        },
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 30), Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold))]),
+      ),
+    );
+  }
+
+  Widget _buildVipSensiButton() {
+    return InkWell(
+      onTap: _showRewardedAdAndNavigate, // <--- ভিডিও অ্যাড ফাংশন
+      child: Container(
+        height: 70, width: double.infinity,
+        decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
+        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.radar, color: Colors.purpleAccent), SizedBox(width: 10), Text("🔥 VIP SENSI (HEADSHOT)", style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold))]),
+      ),
+    );
+  }
+
+  Widget _buildGameLauncher() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("🎮 MY INSTALLED GAMES", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white70)),
+        const SizedBox(height: 15),
+        SizedBox(
+          height: 90,
+          child: _isLoadingApps 
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _installedApps.length,
+                  itemBuilder: (context, index) {
+                    AppInfo app = _installedApps[index];
+                    return GestureDetector(
+                      onTap: () => InstalledApps.startApp(app.packageName!), // <--- গেম সরাসরি ওপেন হবে, কোনো অ্যাড নেই
+                      child: Container(
+                        width: 75, margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          children: [
+                            if (app.icon != null) Image.memory(app.icon!, width: 50, height: 50),
+                            const SizedBox(height: 5),
+                            Text(app.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
