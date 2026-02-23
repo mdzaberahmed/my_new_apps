@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:math' as math;
 
 void main() {
@@ -24,11 +26,60 @@ class FFBoostAppPremium extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent, brightness: Brightness.dark, primary: Colors.greenAccent),
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, centerTitle: true, titleTextStyle: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
       ),
-      home: const PremiumBoostPanel(),
+      home: const SplashScreen(), // প্রথমে স্প্ল্যাশ স্ক্রিন ওপেন হবে
     );
   }
 }
 
+// ==========================================
+// 1. SPLASH SCREEN 
+// ==========================================
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // ৩ সেকেন্ড পর অটোমেটিক হোমপেজে যাবে
+    Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const PremiumBoostPanel()));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF050805),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.greenAccent.withOpacity(0.1), boxShadow: [BoxShadow(color: Colors.greenAccent.withOpacity(0.5), blurRadius: 30, spreadRadius: 5)]),
+              child: const Icon(Icons.sports_esports, size: 80, color: Colors.greenAccent),
+            ),
+            const SizedBox(height: 30),
+            const Text("FF GAMING HUB", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
+            const SizedBox(height: 10),
+            const Text("PREMIUM EDITION", style: TextStyle(fontSize: 14, color: Colors.amber, letterSpacing: 3, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 50),
+            const CircularProgressIndicator(color: Colors.greenAccent),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 2. MAIN BOOST PANEL 
+// ==========================================
 class PremiumBoostPanel extends StatefulWidget {
   const PremiumBoostPanel({super.key});
 
@@ -101,7 +152,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
         String pkg = app.packageName?.toLowerCase() ?? '';
         return pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox');
       }).toList();
-
       if(mounted) setState(() { _installedApps = gameApps; _isLoadingApps = false; });
     } catch (e) {
       if(mounted) setState(() => _isLoadingApps = false);
@@ -119,7 +169,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FF GAMING HUB PREMIUM'), leading: const Icon(Icons.menu)),
+      appBar: AppBar(title: const Text('FF GAMING HUB'), leading: const Icon(Icons.menu)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -257,7 +307,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   }
 }
 // ==========================================
-// 2. GFX TOOL PAGE
+// 3. GFX TOOL PAGE
 // ==========================================
 class GfxToolPage extends StatefulWidget {
   const GfxToolPage({super.key});
@@ -338,7 +388,7 @@ class _GfxToolPageState extends State<GfxToolPage> {
 }
 
 // ==========================================
-// 3. CROSSHAIR PAGE
+// 4. CROSSHAIR PAGE
 // ==========================================
 class CrosshairPage extends StatefulWidget {
   const CrosshairPage({super.key});
@@ -425,7 +475,7 @@ class _CrosshairPageState extends State<CrosshairPage> {
 }
 
 // ==========================================
-// 4. VIP PREMIUM PAGE (MERGED)
+// 5. VIP PREMIUM PAGE (DYNAMIC DEVICE NAME)
 // ==========================================
 class VipSensiPage extends StatefulWidget {
   const VipSensiPage({super.key});
@@ -439,12 +489,30 @@ class _VipSensiPageState extends State<VipSensiPage> {
   double scope2x = 90;
   double scope4x = 85;
   
-  // New VIP Toggles
   bool isDPIBoosted = false;
   bool isPingFixed = false;
   bool isLaserEnabled = false;
-  
   bool isApplying = false;
+
+  String myDeviceName = "Your Device"; 
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDeviceName(); 
+  }
+
+  Future<void> _fetchDeviceName() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      if (mounted) {
+        setState(() {
+          myDeviceName = "${androidInfo.brand.toUpperCase()} ${androidInfo.model}";
+        });
+      }
+    }
+  }
 
   void applySensi() {
     setState(() => isApplying = true);
@@ -470,7 +538,6 @@ class _VipSensiPageState extends State<VipSensiPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. VIP TOGGLES SECTION
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber, width: 2)),
@@ -478,10 +545,12 @@ class _VipSensiPageState extends State<VipSensiPage> {
                 children: [
                   const Text("🔥 ADVANCED TOOLS 🔥", style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
                   const Divider(color: Colors.amber),
-                  _buildVipToggle("Auto DPI Optimizer", "Boosts Redmi Note 14 Pro+ Touch", Icons.speed, isDPIBoosted, (val) {
+                  
+                  _buildVipToggle("Auto DPI Optimizer", "Boosts $myDeviceName Touch", Icons.speed, isDPIBoosted, (val) {
                     setState(() => isDPIBoosted = val);
-                    if(val) _showToggleMsg("DPI Optimized for Max Headshots");
+                    if(val) _showToggleMsg("DPI Optimized for $myDeviceName");
                   }),
+                  
                   _buildVipToggle("Ping Stabilizer Pro", "Connects to 1.1.1.1 Gaming DNS", Icons.network_check, isPingFixed, (val) {
                     setState(() => isPingFixed = val);
                     if(val) _showToggleMsg("Ping Stabilized!");
@@ -495,7 +564,6 @@ class _VipSensiPageState extends State<VipSensiPage> {
             ),
             const SizedBox(height: 30),
 
-            // 2. VIP SENSI SECTION
             const Text("🎯 VIP SENSITIVITY", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
             const SizedBox(height: 20),
             _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
@@ -507,7 +575,6 @@ class _VipSensiPageState extends State<VipSensiPage> {
             _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
             const SizedBox(height: 50),
 
-            // 3. APPLY BUTTON
             InkWell(
               onTap: isApplying ? null : applySensi,
               child: Container(
@@ -542,3 +609,4 @@ class _VipSensiPageState extends State<VipSensiPage> {
     );
   }
 }
+
