@@ -1,4 +1,4 @@
-            import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
@@ -47,7 +47,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   List<AppInfo> _installedApps = [];
   bool _isLoadingApps = true;
 
-  // শুধুমাত্র ভিআইপি বাটনের জন্য Rewarded Ad
   RewardedAd? _rewardedAd;
 
   @override
@@ -58,13 +57,12 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
       if(mounted) setState(() { _ping = 50 + math.Random().nextInt(10); _temp = 38 + math.Random().nextInt(4); });
     });
     _loadApps();
-    _loadRewardedAd(); // অ্যাপ ওপেন হলেই ভিডিও অ্যাড লোড হয়ে থাকবে
+    _loadRewardedAd(); 
   }
 
-  // আপনার আসল Rewarded ID দিয়ে অ্যাড লোড করা হচ্ছে
   void _loadRewardedAd() {
     RewardedAd.load(
-      adUnitId: 'ca-app-pub-1591007651969921/1768812277', // Your Real Rewarded ID
+      adUnitId: 'ca-app-pub-1591007651969921/1768812277', 
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) => _rewardedAd = ad,
@@ -73,13 +71,12 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     );
   }
 
-  // ভিআইপি বাটনে ক্লিক করলে এই ফাংশনটি কাজ করবে
   void _showRewardedAdAndNavigate() {
     if (_rewardedAd != null) {
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
-          _loadRewardedAd(); // পরের বারের জন্য আবার অ্যাড লোড করবে
+          _loadRewardedAd(); 
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
@@ -88,12 +85,10 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
         },
       );
 
-      // ভিডিও অ্যাড দেখা শেষ হলে ইউজারের পুরস্কার (VIP পেজে যাওয়া)
       _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
       });
     } else {
-      // যদি নেট প্রবলেমের কারণে অ্যাড লোড না হয়, তবে এমনিতেই পেজে ঢুকতে দেবে
       Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
       _loadRewardedAd();
     }
@@ -124,7 +119,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FF GAMING HUB'), leading: const Icon(Icons.menu)),
+      appBar: AppBar(title: const Text('FF GAMING HUB PREMIUM'), leading: const Icon(Icons.menu)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -217,11 +212,11 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
 
   Widget _buildVipSensiButton() {
     return InkWell(
-      onTap: _showRewardedAdAndNavigate, // <--- ভিডিও অ্যাড ফাংশন
+      onTap: _showRewardedAdAndNavigate, 
       child: Container(
         height: 70, width: double.infinity,
         decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
-        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.radar, color: Colors.purpleAccent), SizedBox(width: 10), Text("🔥 VIP SENSI (HEADSHOT)", style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold))]),
+        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.stars, color: Colors.purpleAccent), SizedBox(width: 10), Text("👑 UNLOCK VIP FEATURES", style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold, fontSize: 16))]),
       ),
     );
   }
@@ -242,7 +237,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
                   itemBuilder: (context, index) {
                     AppInfo app = _installedApps[index];
                     return GestureDetector(
-                      onTap: () => InstalledApps.startApp(app.packageName!), // <--- গেম সরাসরি ওপেন হবে, কোনো অ্যাড নেই
+                      onTap: () => InstalledApps.startApp(app.packageName!), 
                       child: Container(
                         width: 75, margin: const EdgeInsets.only(right: 12),
                         child: Column(
@@ -430,7 +425,7 @@ class _CrosshairPageState extends State<CrosshairPage> {
 }
 
 // ==========================================
-// 4. VIP SENSI PAGE
+// 4. VIP PREMIUM PAGE (MERGED)
 // ==========================================
 class VipSensiPage extends StatefulWidget {
   const VipSensiPage({super.key});
@@ -443,6 +438,12 @@ class _VipSensiPageState extends State<VipSensiPage> {
   double redDot = 95;
   double scope2x = 90;
   double scope4x = 85;
+  
+  // New VIP Toggles
+  bool isDPIBoosted = false;
+  bool isPingFixed = false;
+  bool isLaserEnabled = false;
+  
   bool isApplying = false;
 
   void applySensi() {
@@ -450,27 +451,53 @@ class _VipSensiPageState extends State<VipSensiPage> {
     Timer(const Duration(seconds: 2), () {
       setState(() => isApplying = false);
       if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("VIP Headshot Sensi Applied Successfully!"), backgroundColor: Colors.purpleAccent));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("All VIP Settings Applied Successfully!"), backgroundColor: Colors.amber));
         Navigator.pop(context);
       }
     });
   }
 
+  void _showToggleMsg(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.amber[700], behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 1500)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("VIP HEADSHOT SENSI", style: TextStyle(color: Colors.purpleAccent))),
+      appBar: AppBar(title: const Text("VIP PREMIUM FEATURES", style: TextStyle(color: Colors.amber))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 1. VIP TOGGLES SECTION
             Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
-              child: Row(children: const [Icon(Icons.warning_amber_rounded, color: Colors.purpleAccent), SizedBox(width: 10), Expanded(child: Text("These sensitivity settings are optimized for maximum headshot accuracy.", style: TextStyle(color: Colors.white70, fontSize: 13)))]),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber, width: 2)),
+              child: Column(
+                children: [
+                  const Text("🔥 ADVANCED TOOLS 🔥", style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Divider(color: Colors.amber),
+                  _buildVipToggle("Auto DPI Optimizer", "Boosts Redmi Note 14 Pro+ Touch", Icons.speed, isDPIBoosted, (val) {
+                    setState(() => isDPIBoosted = val);
+                    if(val) _showToggleMsg("DPI Optimized for Max Headshots");
+                  }),
+                  _buildVipToggle("Ping Stabilizer Pro", "Connects to 1.1.1.1 Gaming DNS", Icons.network_check, isPingFixed, (val) {
+                    setState(() => isPingFixed = val);
+                    if(val) _showToggleMsg("Ping Stabilized!");
+                  }),
+                  _buildVipToggle("Laser Crosshair Pro", "Red Dot Laser for Sniper", Icons.track_changes, isLaserEnabled, (val) {
+                    setState(() => isLaserEnabled = val);
+                    if(val) _showToggleMsg("Laser Crosshair Enabled");
+                  }),
+                ],
+              ),
             ),
             const SizedBox(height: 30),
+
+            // 2. VIP SENSI SECTION
+            const Text("🎯 VIP SENSITIVITY", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+            const SizedBox(height: 20),
             _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
             const SizedBox(height: 20),
             _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
@@ -479,12 +506,14 @@ class _VipSensiPageState extends State<VipSensiPage> {
             const SizedBox(height: 20),
             _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
             const SizedBox(height: 50),
+
+            // 3. APPLY BUTTON
             InkWell(
               onTap: isApplying ? null : applySensi,
               child: Container(
                 height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.deepPurpleAccent]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 10)]),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY VIP SENSI", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
+                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.amber, Colors.orange]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.amber.withOpacity(0.3), blurRadius: 10)]),
+                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.black) : const Text("APPLY ALL VIP SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
               ),
             )
           ],
@@ -493,12 +522,22 @@ class _VipSensiPageState extends State<VipSensiPage> {
     );
   }
 
+  Widget _buildVipToggle(String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: Colors.amber),
+      title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+      trailing: Switch(value: value, onChanged: onChanged, activeColor: Colors.amber),
+    );
+  }
+
   Widget _buildSensiSlider(String title, double value, Function(double) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)), Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.purpleAccent))]),
-        Slider(value: value, min: 0, max: 100, activeColor: Colors.purpleAccent, inactiveColor: Colors.white10, onChanged: onChanged),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)), Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber))]),
+        Slider(value: value, min: 0, max: 100, activeColor: Colors.amber, inactiveColor: Colors.white10, onChanged: onChanged),
       ],
     );
   }
