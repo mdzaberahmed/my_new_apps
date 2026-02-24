@@ -21,10 +21,9 @@ class FFBoostAppPremium extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FF Boost Premium',
-      // 10/10 LUXURY THEME SETUP
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF05080D), // Deep Space Dark BG
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFD700), brightness: Brightness.dark, primary: const Color(0xFFFFD700)), // Gold Primary
+        scaffoldBackgroundColor: const Color(0xFF05080D), 
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFD700), brightness: Brightness.dark, primary: const Color(0xFFFFD700)),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -40,8 +39,8 @@ class FFBoostAppPremium extends StatelessWidget {
           trackHeight: 6,
         ),
         switchTheme: SwitchThemeData(
-          thumbColor: MaterialStateProperty.all(const Color(0xFFFFD700)),
-          trackColor: MaterialStateProperty.resolveWith((states) => states.contains(MaterialState.selected) ? const Color(0xFFFFD700).withOpacity(0.5) : Colors.grey.shade800),
+          thumbColor: WidgetStateProperty.all(const Color(0xFFFFD700)),
+          trackColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? const Color(0xFFFFD700).withOpacity(0.5) : Colors.grey.shade800),
         )
       ),
       home: const SplashScreen(),
@@ -49,7 +48,6 @@ class FFBoostAppPremium extends StatelessWidget {
   }
 }
 
-// ==================== SPLASH SCREEN (LUXURY UPGRADE) ====================
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   @override
@@ -100,7 +98,6 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
-// ==================== NEW LUXURY HOME SCREEN ====================
 class PremiumBoostPanel extends StatefulWidget {
   const PremiumBoostPanel({super.key});
   @override
@@ -189,7 +186,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- LUXURY STATUS DASHBOARD ---
             Container(
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
               decoration: BoxDecoration(
@@ -210,7 +206,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
             
             const SizedBox(height: 35),
 
-            // --- GLOWING OPTIMIZE BUTTON ---
             InkWell(
               onTap: _isOptimizing ? null : _optimizeDevice,
               borderRadius: BorderRadius.circular(25),
@@ -239,7 +234,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
             
             const SizedBox(height: 30),
 
-            // --- NEON TOOLS GRID ---
             Row(
               children: [
                 Expanded(child: _buildNeonToolBtn("GFX TOOL", Icons.settings_suggest_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage())))),
@@ -250,7 +244,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
 
             const SizedBox(height: 30),
 
-            // --- GOLDEN VIP BUTTON ---
             InkWell(
               onTap: _showRewardedAdAndNavigate, 
               borderRadius: BorderRadius.circular(25),
@@ -275,7 +268,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
 
             const SizedBox(height: 40),
 
-            // --- FUTURISTIC GAME LIBRARY ---
             const Padding(
               padding: EdgeInsets.only(left: 10),
               child: Text("INSTALLED GAMES", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFD700), fontSize: 16, letterSpacing: 1.5)),
@@ -288,7 +280,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
                 gradient: LinearGradient(colors: [Colors.cyanAccent.withOpacity(0.05), Colors.purpleAccent.withOpacity(0.05)]),
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.white10, width: 1),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, inset: true)]
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20)] 
               ),
               child: _isLoadingApps 
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)))
@@ -358,7 +350,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
     );
   }
 }
-// ==================== GFX TOOL PAGE (LUXURY REDESIGN) ====================
 class GfxToolPage extends StatefulWidget {
   const GfxToolPage({super.key});
   @override
@@ -395,7 +386,6 @@ class _GfxToolPageState extends State<GfxToolPage> {
   }
 }
 
-// ==================== CROSSHAIR PAGE (LUXURY REDESIGN) ====================
 class CrosshairPage extends StatefulWidget {
   const CrosshairPage({super.key});
   @override
@@ -422,7 +412,6 @@ class _CrosshairPageState extends State<CrosshairPage> {
   }
 }
 
-// ==================== VIP PAGE (LUXURY REDESIGN - FUNCTIONAL) ====================
 class VipSensiPage extends StatefulWidget {
   const VipSensiPage({super.key});
   @override
