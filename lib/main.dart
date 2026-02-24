@@ -1,3 +1,4 @@
+                                      ),
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -21,22 +22,37 @@ class FFBoostAppPremium extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FF Boost Premium',
+      // 10/10 LUXURY THEME SETUP
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF050805),
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.greenAccent, brightness: Brightness.dark, primary: Colors.greenAccent),
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0, centerTitle: true, titleTextStyle: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+        scaffoldBackgroundColor: const Color(0xFF05080D), // Deep Space Dark BG
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFD700), brightness: Brightness.dark, primary: const Color(0xFFFFD700)), // Gold Primary
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          titleTextStyle: TextStyle(color: Color(0xFFFFD700), fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: 2),
+          iconTheme: IconThemeData(color: Color(0xFFFFD700)),
+        ),
+        sliderTheme: SliderThemeData(
+          activeTrackColor: const Color(0xFFFFD700),
+          inactiveTrackColor: const Color(0xFF1A1F2B),
+          thumbColor: const Color(0xFFFFD700),
+          overlayColor: const Color(0xFFFFD700).withOpacity(0.2),
+          trackHeight: 6,
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: MaterialStateProperty.all(const Color(0xFFFFD700)),
+          trackColor: MaterialStateProperty.resolveWith((states) => states.contains(MaterialState.selected) ? const Color(0xFFFFD700).withOpacity(0.5) : Colors.grey.shade800),
+        )
       ),
-      home: const SplashScreen(), // প্রথমে স্প্ল্যাশ স্ক্রিন ওপেন হবে
+      home: const SplashScreen(),
     );
   }
 }
 
-// ==========================================
-// 1. SPLASH SCREEN 
-// ==========================================
+// ==================== SPLASH SCREEN (LUXURY UPGRADE) ====================
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
-
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -45,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // ৩ সেকেন্ড পর অটোমেটিক হোমপেজে যাবে
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const PremiumBoostPanel()));
     });
@@ -54,58 +69,58 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF050805),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.greenAccent.withOpacity(0.1), boxShadow: [BoxShadow(color: Colors.greenAccent.withOpacity(0.5), blurRadius: 30, spreadRadius: 5)]),
-              child: const Icon(Icons.sports_esports, size: 80, color: Colors.greenAccent),
-            ),
-            const SizedBox(height: 30),
-            const Text("FF GAMING HUB", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 2)),
-            const SizedBox(height: 10),
-            const Text("PREMIUM EDITION", style: TextStyle(fontSize: 14, color: Colors.amber, letterSpacing: 3, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 50),
-            const CircularProgressIndicator(color: Colors.greenAccent),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(colors: [Color(0xFF1A1F2B), Color(0xFF05080D)], radius: 1.5, center: Alignment.center)
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black,
+                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                  boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.6), blurRadius: 50, spreadRadius: 10)]
+                ),
+                child: const Icon(Icons.rocket_launch_rounded, size: 80, color: Color(0xFFFFD700)),
+              ),
+              const SizedBox(height: 40),
+              const Text("FF GAMING HUB", style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFFFFD700), letterSpacing: 3)),
+              const SizedBox(height: 15),
+              Text("LUXURY EDITION", style: TextStyle(fontSize: 14, color: Colors.cyanAccent.withOpacity(0.8), letterSpacing: 6, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 60),
+              const CircularProgressIndicator(color: Color(0xFFFFD700)),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ==========================================
-// 2. MAIN BOOST PANEL 
-// ==========================================
+// ==================== NEW LUXURY HOME SCREEN ====================
 class PremiumBoostPanel extends StatefulWidget {
   const PremiumBoostPanel({super.key});
-
   @override
   State<PremiumBoostPanel> createState() => _PremiumBoostPanelState();
 }
 
-class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProviderStateMixin {
-  double _ramValue = 0.36;
-  bool _isBoosting = false;
-  late AnimationController _spinController;
+class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
+  bool _isOptimizing = false;
   int _ping = 56;
-  int _temp = 39;
   Timer? _statsTimer;
-
   List<AppInfo> _installedApps = [];
   bool _isLoadingApps = true;
-
   RewardedAd? _rewardedAd;
 
   @override
   void initState() {
     super.initState();
-    _spinController = AnimationController(duration: const Duration(seconds: 2), vsync: this);
-    _statsTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if(mounted) setState(() { _ping = 50 + math.Random().nextInt(10); _temp = 38 + math.Random().nextInt(4); });
+    _statsTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if(mounted) setState(() { _ping = 45 + math.Random().nextInt(15); });
     });
     _loadApps();
     _loadRewardedAd(); 
@@ -125,17 +140,9 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
   void _showRewardedAdAndNavigate() {
     if (_rewardedAd != null) {
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          _loadRewardedAd(); 
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          _loadRewardedAd();
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
-        },
+        onAdDismissedFullScreenContent: (ad) { ad.dispose(); _loadRewardedAd(); },
+        onAdFailedToShowFullScreenContent: (ad, error) { ad.dispose(); _loadRewardedAd(); Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage())); },
       );
-
       _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         Navigator.push(context, MaterialPageRoute(builder: (context) => const VipSensiPage()));
       });
@@ -158,455 +165,311 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> with TickerProvid
     }
   }
 
-  @override
-  void dispose() {
-    _spinController.dispose();
-    _statsTimer?.cancel();
-    _rewardedAd?.dispose();
-    super.dispose();
+  void _optimizeDevice() {
+    setState(() => _isOptimizing = true);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text("Preparing device for maximum performance..."), backgroundColor: const Color(0xFF1A1F2B), behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: Color(0xFFFFD700)))));
+    Timer(const Duration(seconds: 3), () {
+      setState(() => _isOptimizing = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text("Device READY for Gaming!"), backgroundColor: Colors.greenAccent[700], behavior: SnackBarBehavior.floating));
+    });
   }
+
+  @override
+  void dispose() { _statsTimer?.cancel(); _rewardedAd?.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FF GAMING HUB'), leading: const Icon(Icons.menu)),
+      appBar: AppBar(
+        title: const Text('FF GAMING HUB'),
+        leading: IconButton(icon: const Icon(Icons.menu_rounded), onPressed: (){}),
+        actions: [IconButton(icon: const Icon(Icons.notifications_none_rounded), onPressed: (){})],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildRamMonitorCard(),
-            const SizedBox(height: 15),
-            _buildStatsRow(),
-            const SizedBox(height: 15),
-            _buildToolsRow(),
-            const SizedBox(height: 15),
-            _buildVipSensiButton(),
-            const SizedBox(height: 25),
-            _buildGameLauncher(),
+            // --- LUXURY STATUS DASHBOARD ---
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1A1F2B), Color(0xFF0A0E11)]),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.5), width: 1.5),
+                boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.2), blurRadius: 25, offset: const Offset(0, 10))]
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildStatusItem(Icons.wifi_tethering_rounded, "$_ping MS", "LIVE PING", Colors.greenAccent),
+                  Container(height: 60, width: 1, color: const Color(0xFFFFD700).withOpacity(0.3)),
+                  _buildStatusItem(Icons.bolt_rounded, "OPTIMAL", "SYSTEM", const Color(0xFFFFD700)),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 35),
+
+            // --- GLOWING OPTIMIZE BUTTON ---
+            InkWell(
+              onTap: _isOptimizing ? null : _optimizeDevice,
+              borderRadius: BorderRadius.circular(25),
+              child: Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF8C00)]),
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.6), blurRadius: 20, spreadRadius: 2, offset: const Offset(0, 5)),
+                    BoxShadow(color: Colors.orange.withOpacity(0.4), blurRadius: 30, spreadRadius: 5, offset: const Offset(0, 10))
+                    ]
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _isOptimizing 
+                      ? const CircularProgressIndicator(color: Colors.black87)
+                      : const Icon(Icons.rocket_launch_rounded, color: Colors.black87, size: 36),
+                    const SizedBox(width: 15),
+                    Text(_isOptimizing ? "PREPARING..." : "PREPARE FOR MATCH", style: const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 30),
+
+            // --- NEON TOOLS GRID ---
+            Row(
+              children: [
+                Expanded(child: _buildNeonToolBtn("GFX TOOL", Icons.settings_suggest_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage())))),
+                const SizedBox(width: 20),
+                Expanded(child: _buildNeonToolBtn("CROSSHAIR", Icons.gps_fixed_rounded, Colors.purpleAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CrosshairPage())))),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            // --- GOLDEN VIP BUTTON ---
+            InkWell(
+              onTap: _showRewardedAdAndNavigate, 
+              borderRadius: BorderRadius.circular(25),
+              child: Container(
+                height: 75,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1F2B),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(color: const Color(0xFFFFD700), width: 2),
+                  boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 5))]
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 34),
+                    SizedBox(width: 15),
+                    Text("UNLOCK VIP FEATURES", style: TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // --- FUTURISTIC GAME LIBRARY ---
+            const Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text("INSTALLED GAMES", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFD700), fontSize: 16, letterSpacing: 1.5)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              height: 120,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [Colors.cyanAccent.withOpacity(0.05), Colors.purpleAccent.withOpacity(0.05)]),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(color: Colors.white10, width: 1),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, inset: true)]
+              ),
+              child: _isLoadingApps 
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)))
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _installedApps.length,
+                      itemBuilder: (context, index) {
+                        AppInfo app = _installedApps[index];
+                        return GestureDetector(
+                          onTap: () => InstalledApps.startApp(app.packageName!), 
+                          child: Container(
+                            width: 85, margin: const EdgeInsets.only(right: 20),
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFFD700), width: 2), boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.3), blurRadius: 15)]),
+                                  child: ClipRRect(borderRadius: BorderRadius.circular(50), child: app.icon != null ? Image.memory(app.icon!, width: 55, height: 55) : const Icon(Icons.games, color: Colors.white)),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(app.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRamMonitorCard() {
-    return Container(
-      width: double.infinity, padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.greenAccent.withOpacity(0.3))),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              RotationTransition(turns: _spinController, child: SizedBox(width: 160, height: 160, child: CircularProgressIndicator(value: _isBoosting ? null : _ramValue, strokeWidth: 12, backgroundColor: Colors.white10, valueColor: AlwaysStoppedAnimation<Color>(_isBoosting ? Colors.orangeAccent : Colors.greenAccent)))),
-              Text("${(_ramValue * 100).toInt()}%", style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 25),
-          ElevatedButton(
-            onPressed: () {
-              setState(() => _isBoosting = true);
-              _spinController.repeat();
-              Timer(const Duration(seconds: 3), () {
-                _spinController.stop();
-                setState(() { _isBoosting = false; _ramValue = 0.30; });
-              });
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, minimumSize: const Size(double.infinity, 50)),
-            child: const Text("BOOST RAM NOW", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatItem(Icons.network_ping, "$_ping ms", Colors.blueAccent)),
-        const SizedBox(width: 15),
-        Expanded(child: _buildStatItem(Icons.thermostat, "$_temp°C", Colors.redAccent)),
-      ],
-    );
-  }
-
-  Widget _buildStatItem(IconData icon, String value, Color color) {
-    return Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(15)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 20), const SizedBox(width: 10), Text(value)]));
-  }
-
-  Widget _buildToolsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildToolBtn("GFX TOOL", Icons.settings_suggest, Colors.orangeAccent)),
-        const SizedBox(width: 15),
-        Expanded(child: _buildToolBtn("CROSSHAIR", Icons.my_location, Colors.cyanAccent)),
-      ],
-    );
-  }
-
-  Widget _buildToolBtn(String title, IconData icon, Color color) {
-    return Container(
-      height: 100, decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.2))),
-      child: InkWell(
-        onTap: () {
-          if (title == "GFX TOOL") {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage()));
-          } else {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const CrosshairPage()));
-          }
-        },
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(icon, color: color, size: 30), Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold))]),
-      ),
-    );
-  }
-
-  Widget _buildVipSensiButton() {
-    return InkWell(
-      onTap: _showRewardedAdAndNavigate, 
-      child: Container(
-        height: 70, width: double.infinity,
-        decoration: BoxDecoration(color: const Color(0xFF1A221A), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.purpleAccent.withOpacity(0.3))),
-        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.stars, color: Colors.purpleAccent), SizedBox(width: 10), Text("👑 UNLOCK VIP FEATURES", style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold, fontSize: 16))]),
-      ),
-    );
-  }
-
-  Widget _buildGameLauncher() {
+  Widget _buildStatusItem(IconData icon, String value, String label, Color color) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("🎮 MY INSTALLED GAMES", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white70)),
-        const SizedBox(height: 15),
-        SizedBox(
-          height: 90,
-          child: _isLoadingApps 
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _installedApps.length,
-                  itemBuilder: (context, index) {
-                    AppInfo app = _installedApps[index];
-                    return GestureDetector(
-                      onTap: () => InstalledApps.startApp(app.packageName!), 
-                      child: Container(
-                        width: 75, margin: const EdgeInsets.only(right: 12),
-                        child: Column(
-                          children: [
-                            if (app.icon != null) Image.memory(app.icon!, width: 50, height: 50),
-                            const SizedBox(height: 5),
-                            Text(app.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
+        Icon(icon, color: color, size: 30, shadows: [Shadow(color: color, blurRadius: 10)]),
+        const SizedBox(height: 10),
+        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.7), letterSpacing: 2)),
       ],
+    );
+  }
+
+  Widget _buildNeonToolBtn(String title, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(25),
+      child: Container(
+        height: 110,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1F2B),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(color: color.withOpacity(0.6), width: 1.5),
+           boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 5))]
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 36, shadows: [Shadow(color: color, blurRadius: 15)]),
+            const SizedBox(height: 15),
+            Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
+          ],
+        ),
+      ),
     );
   }
 }
-// ==========================================
-// 3. GFX TOOL PAGE
-// ==========================================
+// ==================== GFX TOOL PAGE (LUXURY REDESIGN) ====================
 class GfxToolPage extends StatefulWidget {
   const GfxToolPage({super.key});
   @override
   State<GfxToolPage> createState() => _GfxToolPageState();
 }
-
 class _GfxToolPageState extends State<GfxToolPage> {
-  String selectedRes = "1080p";
-  String selectedFPS = "60 FPS";
-  String selectedGraphics = "Smooth";
-  bool isApplying = false;
-
+  String selectedRes = "1080p"; String selectedFPS = "60 FPS"; String selectedGraphics = "Smooth"; bool isApplying = false;
   void applySettings() {
     setState(() => isApplying = true);
     Timer(const Duration(seconds: 2), () {
       setState(() => isApplying = false);
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("GFX Settings Applied Successfully!"), backgroundColor: Colors.greenAccent));
-        Navigator.pop(context);
-      }
+      if(mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text("GFX Settings Applied!"), backgroundColor: Colors.greenAccent[700], behavior: SnackBarBehavior.floating)); Navigator.pop(context); }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("GFX SETTINGS", style: TextStyle(color: Colors.orangeAccent))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("RESOLUTION"),
-            _buildOptionsRow(["720p", "1080p", "1440p"], selectedRes, (val) => setState(() => selectedRes = val), Colors.orangeAccent),
-            const SizedBox(height: 25),
-            _buildSectionTitle("FPS (FRAMES PER SECOND)"),
-            _buildOptionsRow(["30 FPS", "60 FPS", "90 FPS"], selectedFPS, (val) => setState(() => selectedFPS = val), Colors.orangeAccent),
-            const SizedBox(height: 25),
-            _buildSectionTitle("GRAPHICS QUALITY"),
-            _buildOptionsRow(["Smooth", "Balanced", "HDR"], selectedGraphics, (val) => setState(() => selectedGraphics = val), Colors.orangeAccent),
-            const SizedBox(height: 50),
-            InkWell(
-              onTap: isApplying ? null : applySettings,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange]), borderRadius: BorderRadius.circular(15)),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white))),
-              ),
-            )
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text("GFX SETTINGS")),
+      body: SingleChildScrollView(padding: const EdgeInsets.all(25), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _buildSectionTitle("RESOLUTION"), _buildOptionsRow(["720p", "1080p", "1440p"], selectedRes, (val) => setState(() => selectedRes = val), Colors.orangeAccent),
+        const SizedBox(height: 35), _buildSectionTitle("FPS"), _buildOptionsRow(["30 FPS", "60 FPS", "90 FPS"], selectedFPS, (val) => setState(() => selectedFPS = val), Colors.cyanAccent),
+        const SizedBox(height: 35), _buildSectionTitle("GRAPHICS"), _buildOptionsRow(["Smooth", "Balanced", "HDR"], selectedGraphics, (val) => setState(() => selectedGraphics = val), Colors.purpleAccent),
+        const SizedBox(height: 60),
+        InkWell(onTap: isApplying ? null : applySettings, borderRadius: BorderRadius.circular(25), child: Container(height: 70, width: double.infinity, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.orangeAccent, Colors.deepOrange]), borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.orangeAccent.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 5))]), child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("APPLY SETTINGS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1))))),
+      ])),
     );
   }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)));
-  }
-
+  Widget _buildSectionTitle(String title) { return Padding(padding: const EdgeInsets.only(bottom: 15), child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2))); }
   Widget _buildOptionsRow(List<String> options, String currentValue, Function(String) onSelect, Color activeColor) {
-    return Row(
-      children: options.map((opt) {
-        bool isSelected = currentValue == opt;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => onSelect(opt),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4), padding: const EdgeInsets.symmetric(vertical: 15),
-              decoration: BoxDecoration(color: isSelected ? activeColor.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(12), border: Border.all(color: isSelected ? activeColor : Colors.white10)),
-              child: Center(child: Text(opt, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? activeColor : Colors.white54))),
-            ),
-          ),
-        );
-      }).toList(),
-    );
+    return Row(children: options.map((opt) {
+      bool isSelected = currentValue == opt;
+      return Expanded(child: GestureDetector(onTap: () => onSelect(opt), child: AnimatedContainer(duration: const Duration(milliseconds: 300), margin: const EdgeInsets.symmetric(horizontal: 5), padding: const EdgeInsets.symmetric(vertical: 18), decoration: BoxDecoration(color: isSelected ? activeColor.withOpacity(0.1) : const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(15), border: Border.all(color: isSelected ? activeColor : Colors.white10, width: 1.5), boxShadow: isSelected ? [BoxShadow(color: activeColor.withOpacity(0.4), blurRadius: 15)] : []), child: Center(child: Text(opt, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? activeColor : Colors.white54, letterSpacing: 1))))));
+    }).toList());
   }
 }
 
-// ==========================================
-// 4. CROSSHAIR PAGE
-// ==========================================
+// ==================== CROSSHAIR PAGE (LUXURY REDESIGN) ====================
 class CrosshairPage extends StatefulWidget {
   const CrosshairPage({super.key});
   @override
   State<CrosshairPage> createState() => _CrosshairPageState();
 }
-
 class _CrosshairPageState extends State<CrosshairPage> {
-  IconData selectedIcon = Icons.add;
-  Color selectedColor = Colors.redAccent;
-  bool isApplying = false;
-
+  IconData selectedIcon = Icons.add; Color selectedColor = Colors.redAccent; bool isApplying = false;
   final List<IconData> crosshairs = [Icons.add, Icons.gps_fixed, Icons.my_location, Icons.control_camera, Icons.filter_center_focus, Icons.track_changes];
   final List<Color> colors = [Colors.redAccent, Colors.greenAccent, Colors.yellowAccent, Colors.white, Colors.cyanAccent, Colors.purpleAccent];
-
-  void activateCrosshair() {
-    setState(() => isApplying = true);
-    Timer(const Duration(seconds: 2), () {
-      setState(() => isApplying = false);
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Custom Crosshair Activated Successfully!"), backgroundColor: Colors.cyan));
-        Navigator.pop(context);
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("CUSTOM CROSSHAIR", style: TextStyle(color: Colors.cyanAccent))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 150, height: 150,
-                decoration: BoxDecoration(color: const Color(0xFF161B16), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.cyanAccent.withOpacity(0.3))),
-                child: Center(child: Icon(selectedIcon, size: 60, color: selectedColor)),
-              ),
-            ),
-            const SizedBox(height: 30),
-            const Text("SELECT STYLE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-            const SizedBox(height: 15),
-            Wrap(
-              spacing: 15, runSpacing: 15,
-              children: crosshairs.map((icon) => GestureDetector(
-                onTap: () => setState(() => selectedIcon = icon),
-                child: Container(
-                  width: 60, height: 60,
-                  decoration: BoxDecoration(color: selectedIcon == icon ? Colors.cyanAccent.withOpacity(0.2) : const Color(0xFF1A221A), borderRadius: BorderRadius.circular(15), border: Border.all(color: selectedIcon == icon ? Colors.cyanAccent : Colors.white10)),
-                  child: Icon(icon, color: selectedIcon == icon ? Colors.cyanAccent : Colors.white54),
-                ),
-              )).toList(),
-            ),
-            const SizedBox(height: 30),
-            const Text("SELECT COLOR", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-            const SizedBox(height: 15),
-            Wrap(
-              spacing: 15, runSpacing: 15,
-              children: colors.map((color) => GestureDetector(
-                onTap: () => setState(() => selectedColor = color),
-                child: Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: selectedColor == color ? Colors.white : Colors.transparent, width: 3)),
-                ),
-              )).toList(),
-            ),
-            const SizedBox(height: 50),
-            InkWell(
-              onTap: isApplying ? null : activateCrosshair,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent]), borderRadius: BorderRadius.circular(15)),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("ACTIVATE CROSSHAIR", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
-              ),
-            )
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text("CUSTOM CROSSHAIR")),
+      body: SingleChildScrollView(padding: const EdgeInsets.all(25), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Center(child: Container(width: 180, height: 180, decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(30), border: Border.all(color: selectedColor.withOpacity(0.8), width: 2), boxShadow: [BoxShadow(color: selectedColor.withOpacity(0.4), blurRadius: 30)]), child: Center(child: Icon(selectedIcon, size: 80, color: selectedColor, shadows: [Shadow(color: selectedColor, blurRadius: 20)])))),
+        const SizedBox(height: 40), const Text("SELECT STYLE", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2)),
+        const SizedBox(height: 20), Wrap(spacing: 20, runSpacing: 20, children: crosshairs.map((icon) => GestureDetector(onTap: () => setState(() => selectedIcon = icon), child: AnimatedContainer(duration: const Duration(milliseconds: 300), width: 65, height: 65, decoration: BoxDecoration(color: selectedIcon == icon ? Colors.cyanAccent.withOpacity(0.1) : const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(15), border: Border.all(color: selectedIcon == icon ? Colors.cyanAccent : Colors.white10, width: 1.5), boxShadow: selectedIcon == icon ? [BoxShadow(color: Colors.cyanAccent.withOpacity(0.4), blurRadius: 15)] : []), child: Icon(icon, color: selectedIcon == icon ? Colors.cyanAccent : Colors.white54)))).toList()),
+        const SizedBox(height: 40), const Text("SELECT COLOR", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2)),
+        const SizedBox(height: 20), Wrap(spacing: 20, runSpacing: 20, children: colors.map((color) => GestureDetector(onTap: () => setState(() => selectedColor = color), child: AnimatedContainer(duration: const Duration(milliseconds: 300), width: 55, height: 55, decoration: BoxDecoration(color: color, shape: BoxShape.circle, border: Border.all(color: selectedColor == color ? Colors.white : Colors.transparent, width: 3), boxShadow: selectedColor == color ? [BoxShadow(color: color.withOpacity(0.6), blurRadius: 20)] : []), ))).toList()),
+        const SizedBox(height: 60),
+        InkWell(onTap: () { setState(() => isApplying = true); Timer(const Duration(seconds: 2), () { setState(() => isApplying = false); Navigator.pop(context); }); }, borderRadius: BorderRadius.circular(25), child: Container(height: 70, width: double.infinity, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.cyanAccent, Colors.blueAccent]), borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.cyanAccent.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 5))]), child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.white) : const Text("ACTIVATE CROSSHAIR", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black, letterSpacing: 1))))),
+      ])),
     );
   }
 }
 
-// ==========================================
-// 5. VIP PREMIUM PAGE (DYNAMIC DEVICE NAME)
-// ==========================================
+// ==================== VIP PAGE (LUXURY REDESIGN - FUNCTIONAL) ====================
 class VipSensiPage extends StatefulWidget {
   const VipSensiPage({super.key});
   @override
   State<VipSensiPage> createState() => _VipSensiPageState();
 }
-
 class _VipSensiPageState extends State<VipSensiPage> {
-  double general = 98;
-  double redDot = 95;
-  double scope2x = 90;
-  double scope4x = 85;
-  
-  bool isDPIBoosted = false;
-  bool isPingFixed = false;
-  bool isLaserEnabled = false;
-  bool isApplying = false;
-
+  double general = 98; double redDot = 95; double scope2x = 90; double scope4x = 85;
+  bool isDPIBoosted = false; bool isPingFixed = false; bool isLaserEnabled = false; bool isApplying = false;
   String myDeviceName = "Your Device"; 
 
   @override
-  void initState() {
-    super.initState();
-    _fetchDeviceName(); 
-  }
+  void initState() { super.initState(); _fetchDeviceName(); }
 
   Future<void> _fetchDeviceName() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      if (mounted) {
-        setState(() {
-          myDeviceName = "${androidInfo.brand.toUpperCase()} ${androidInfo.model}";
-        });
-      }
+      if (mounted) setState(() { myDeviceName = "${androidInfo.brand.toUpperCase()} ${androidInfo.model}"; });
     }
-  }
-
-  void applySensi() {
-    setState(() => isApplying = true);
-    Timer(const Duration(seconds: 2), () {
-      setState(() => isApplying = false);
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("All VIP Settings Applied Successfully!"), backgroundColor: Colors.amber));
-        Navigator.pop(context);
-      }
-    });
-  }
-
-  void _showToggleMsg(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.amber[700], behavior: SnackBarBehavior.floating, duration: const Duration(milliseconds: 1500)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("VIP PREMIUM FEATURES", style: TextStyle(color: Colors.amber))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.amber, width: 2)),
-              child: Column(
-                children: [
-                  const Text("🔥 ADVANCED TOOLS 🔥", style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
-                  const Divider(color: Colors.amber),
-                  
-                  _buildVipToggle("Auto DPI Optimizer", "Boosts $myDeviceName Touch", Icons.speed, isDPIBoosted, (val) {
-                    setState(() => isDPIBoosted = val);
-                    if(val) _showToggleMsg("DPI Optimized for $myDeviceName");
-                  }),
-                  
-                  _buildVipToggle("Ping Stabilizer Pro", "Connects to 1.1.1.1 Gaming DNS", Icons.network_check, isPingFixed, (val) {
-                    setState(() => isPingFixed = val);
-                    if(val) _showToggleMsg("Ping Stabilized!");
-                  }),
-                  _buildVipToggle("Laser Crosshair Pro", "Red Dot Laser for Sniper", Icons.track_changes, isLaserEnabled, (val) {
-                    setState(() => isLaserEnabled = val);
-                    if(val) _showToggleMsg("Laser Crosshair Enabled");
-                  }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            const Text("🎯 VIP SENSITIVITY", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("2X SCOPE", scope2x, (val) => setState(() => scope2x = val)),
-            const SizedBox(height: 20),
-            _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
-            const SizedBox(height: 50),
-
-            InkWell(
-              onTap: isApplying ? null : applySensi,
-              child: Container(
-                height: 60, width: double.infinity,
-                decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.amber, Colors.orange]), borderRadius: BorderRadius.circular(15), boxShadow: [BoxShadow(color: Colors.amber.withOpacity(0.3), blurRadius: 10)]),
-                child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.black) : const Text("APPLY ALL VIP SETTINGS", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))),
-              ),
-            )
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text("VIP PREMIUM FEATURES", style: TextStyle(color: Color(0xFFFFD700)))),
+      body: SingleChildScrollView(padding: const EdgeInsets.all(25), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(padding: const EdgeInsets.all(20), decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(25), border: Border.all(color: const Color(0xFFFFD700), width: 1.5), boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.3), blurRadius: 20)]), child: Column(children: [
+          const Text("🔥 ADVANCED TOOLS 🔥", style: TextStyle(color: Color(0xFFFFD700), fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1)), const Divider(color: Color(0xFFFFD700), height: 30),
+          _buildVipToggle("Auto DPI Optimizer", "Boosts $myDeviceName Touch", Icons.speed_rounded, isDPIBoosted, (val) => setState(() => isDPIBoosted = val)),
+          _buildVipToggle("Ping Stabilizer Pro", "Connects to 1.1.1.1 DNS", Icons.network_check_rounded, isPingFixed, (val) => setState(() => isPingFixed = val)),
+          _buildVipToggle("Laser Crosshair Pro", "Red Dot Laser for Sniper", Icons.track_changes_rounded, isLaserEnabled, (val) => setState(() => isLaserEnabled = val)),
+        ])),
+        const SizedBox(height: 40), const Text("🎯 VIP SENSITIVITY", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2)),
+        const SizedBox(height: 25), _buildSensiSlider("GENERAL", general, (val) => setState(() => general = val)),
+        _buildSensiSlider("RED DOT", redDot, (val) => setState(() => redDot = val)),
+        _buildSensiSlider("2X SCOPE", scope2x, (val) => setState(() => scope2x = val)),
+        _buildSensiSlider("4X SCOPE", scope4x, (val) => setState(() => scope4x = val)),
+        const SizedBox(height: 60),
+        InkWell(onTap: () { setState(() => isApplying = true); Timer(const Duration(seconds: 2), () { setState(() => isApplying = false); Navigator.pop(context); }); }, borderRadius: BorderRadius.circular(25), child: Container(height: 70, width: double.infinity, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF8C00)]), borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 5))]), child: Center(child: isApplying ? const CircularProgressIndicator(color: Colors.black87) : const Text("APPLY ALL VIP SETTINGS", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87, letterSpacing: 1))))),
+      ])),
     );
   }
-
   Widget _buildVipToggle(String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: Colors.amber),
-      title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 11)),
-      trailing: Switch(value: value, onChanged: onChanged, activeColor: Colors.amber),
-    );
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: ListTile(contentPadding: EdgeInsets.zero, leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFFFFD700).withOpacity(0.1), shape: BoxShape.circle), child: Icon(icon, color: const Color(0xFFFFD700))), title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)), subtitle: Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)), trailing: Transform.scale(scale: 1.2, child: Switch(value: value, onChanged: onChanged, activeColor: const Color(0xFFFFD700), activeTrackColor: const Color(0xFFFFD700).withOpacity(0.4)))));
   }
-
   Widget _buildSensiSlider(String title, double value, Function(double) onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)), Text("${value.toInt()}%", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber))]),
-        Slider(value: value, min: 0, max: 100, activeColor: Colors.amber, inactiveColor: Colors.white10, onChanged: onChanged),
-      ],
-    );
+    return Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)), Text("${value.toInt()}%", style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 18))]), Slider(value: value, min: 0, max: 100, onChanged: onChanged)]);
   }
 }
-
