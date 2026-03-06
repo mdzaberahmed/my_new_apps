@@ -11,10 +11,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: any
-  installed_apps: any
-  google_mobile_ads: any
-  device_info_plus: ^10.1.0
+  google_mobile_ads: ^5.0.0
+  installed_apps: ^2.0.1
+  device_info_plus: ^10.0.0
+  dart_ping: ^8.1.0        # রিয়েল পিংয়ের জন্য
+  battery_plus: ^6.0.0     # রিয়েল ব্যাটারির জন্য
+  
 
 dev_dependencies:
   flutter_test:
