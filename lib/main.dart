@@ -181,8 +181,8 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
 
   void _loadApps() async {
     try {
-      // ⚠️ ERROR FIXED HERE (Added Named Parameters) ⚠️
-      List<AppInfo> apps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true);
+      // ⚠️ Reverted to stable true, true ⚠️
+      List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
       List<AppInfo> gameApps = apps.where((app) {
         String pkg = app.packageName?.toLowerCase() ?? '';
         return pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox');
@@ -615,3 +615,4 @@ class _VipSensiPageState extends State<VipSensiPage> {
     return Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12)), Text("${value.toInt()}", style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 16))]), Slider(value: value, min: 0, max: 100, onChanged: onChanged)]);
   }
 }
+
