@@ -33,4 +33,6 @@
             android:value="ca-app-pub-1591007651969921~3667528944"/>
             
     </application>
-</manifest>
+</manifest> 
+<uses-permission android:name="android.permission.INTERNET" />
+
