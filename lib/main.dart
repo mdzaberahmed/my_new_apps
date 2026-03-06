@@ -5,16 +5,17 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'dart:math' as math;
+import 'package:dart_ping/dart_ping.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
-  runApp(const FFBoostAppPremium());
+  runApp(const GameUtilityHubApp());
 }
 
-class FFBoostAppPremium extends StatelessWidget {
-  const FFBoostAppPremium({super.key});
+class GameUtilityHubApp extends StatelessWidget {
+  const GameUtilityHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +31,6 @@ class FFBoostAppPremium extends StatelessWidget {
           centerTitle: true,
           titleTextStyle: TextStyle(color: Color(0xFFFFD700), fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: 1.5),
           iconTheme: IconThemeData(color: Color(0xFFFFD700)),
-        ),
-        sliderTheme: SliderThemeData(
-          activeTrackColor: const Color(0xFFFFD700),
-          inactiveTrackColor: const Color(0xFF1A1F2B),
-          thumbColor: const Color(0xFFFFD700),
-          overlayColor: const Color(0xFFFFD700).withOpacity(0.2),
-          trackHeight: 6,
         ),
         switchTheme: SwitchThemeData(
           thumbColor: WidgetStateProperty.all(const Color(0xFFFFD700)),
@@ -106,11 +100,17 @@ class PremiumBoostPanel extends StatefulWidget {
 
 class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
   bool _isOptimizing = false;
-  int _ping = 56;
-  bool _pingBlink = true; // For Live Animated Ping Effect
-  bool _isVipUnlocked = false; // For VIP Glow Border Effect
   
-  Timer? _statsTimer;
+  // Real-Time System Variables
+  int _ping = 0;
+  bool _pingBlink = true; 
+  Ping? _pingService;
+  StreamSubscription<PingData>? _pingSubscription;
+  
+  final Battery _battery = Battery();
+  int _batteryLevel = 100;
+  
+  bool _isVipUnlocked = false; 
   List<AppInfo> _installedApps = [];
   bool _isLoadingApps = true;
   RewardedAd? _rewardedAd;
@@ -118,17 +118,35 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
   @override
   void initState() {
     super.initState();
-    // 2. Animated Live Ping Effect
-    _statsTimer = Timer.periodic(const Duration(milliseconds: 1500), (timer) {
-      if(mounted) {
-        setState(() { 
-          _ping = 45 + math.Random().nextInt(15); 
-          _pingBlink = !_pingBlink; 
-        });
-      }
-    });
+    _initRealTimePing();
+    _initBatteryStatus();
     _loadApps();
     _loadRewardedAd(); 
+  }
+
+  // 1. REAL-TIME PING ENGINE (Google DNS 8.8.8.8)
+  void _initRealTimePing() {
+    _pingService = Ping('8.8.8.8', interval: 2);
+    _pingSubscription = _pingService!.stream.listen((event) {
+      if (event.response != null && event.response!.time != null) {
+        if(mounted) {
+          setState(() { 
+            _ping = event.response!.time!.inMilliseconds; 
+            _pingBlink = !_pingBlink; 
+          });
+        }
+      }
+    });
+  }
+
+  // 2. REAL-TIME BATTERY ENGINE
+  void _initBatteryStatus() async {
+    final level = await _battery.batteryLevel;
+    if(mounted) setState(() => _batteryLevel = level);
+    _battery.onBatteryStateChanged.listen((BatteryState state) async {
+      final level = await _battery.batteryLevel;
+      if(mounted) setState(() => _batteryLevel = level);
+    });
   }
 
   void _loadRewardedAd() {
@@ -149,11 +167,11 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         onAdFailedToShowFullScreenContent: (ad, error) { ad.dispose(); _loadRewardedAd(); _openVipPage(); },
       );
       _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        setState(() => _isVipUnlocked = true); // 3. Activate VIP Glow
+        setState(() => _isVipUnlocked = true); 
         _openVipPage();
       });
     } else {
-      setState(() => _isVipUnlocked = true); // Fallback unlock
+      setState(() => _isVipUnlocked = true); 
       _openVipPage();
       _loadRewardedAd();
     }
@@ -185,7 +203,11 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
   }
 
   @override
-  void dispose() { _statsTimer?.cancel(); _rewardedAd?.dispose(); super.dispose(); }
+  void dispose() { 
+    _pingSubscription?.cancel(); 
+    _rewardedAd?.dispose(); 
+    super.dispose(); 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +216,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         title: const Text('GAME UTILITY'),
         leading: IconButton(icon: const Icon(Icons.sort_rounded), onPressed: (){}),
         actions: [
-          // 1. Top Right PRO Badge (Masterpiece Feature)
           Container(
             margin: const EdgeInsets.only(right: 15, top: 12, bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -212,7 +233,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Dashboard with Live Ping Animation
+            // REAL-TIME DASHBOARD
             Container(
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
               decoration: BoxDecoration(
@@ -224,7 +245,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // Animated Ping Section
+                  // Live Ping Section
                   Column(
                     children: [
                       Row(
@@ -232,26 +253,26 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
                           AnimatedOpacity(
                             opacity: _pingBlink ? 1.0 : 0.3, 
                             duration: const Duration(milliseconds: 500),
-                            child: const Icon(Icons.circle, color: Colors.greenAccent, size: 14, shadows: [Shadow(color: Colors.greenAccent, blurRadius: 10)])
+                            child: Icon(Icons.circle, color: _ping < 80 ? Colors.greenAccent : Colors.orangeAccent, size: 14, shadows: [Shadow(color: _ping < 80 ? Colors.greenAccent : Colors.orangeAccent, blurRadius: 10)])
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.network_ping_rounded, color: Colors.greenAccent, size: 28),
+                          Icon(Icons.network_ping_rounded, color: _ping < 80 ? Colors.greenAccent : Colors.orangeAccent, size: 28),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text("$_ping MS", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
-                      Text("NETWORK", style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7), letterSpacing: 2)),
+                      Text("LIVE PING", style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7), letterSpacing: 2)),
                     ],
                   ),
                   Container(height: 60, width: 1, color: const Color(0xFFFFD700).withOpacity(0.3)),
-                  _buildStatusItem(Icons.memory_rounded, "READY", "SYSTEM", const Color(0xFFFFD700)),
+                  // Live Battery Section
+                  _buildStatusItem(Icons.battery_charging_full_rounded, "$_batteryLevel%", "BATTERY", const Color(0xFFFFD700)),
                 ],
               ),
             ),
             
             const SizedBox(height: 35),
 
-            // Play Store Safe Main Button
             InkWell(
               onTap: _isOptimizing ? null : _optimizeDevice,
               borderRadius: BorderRadius.circular(25),
@@ -287,7 +308,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
 
             const SizedBox(height: 30),
 
-            // 3. VIP Active Glow Border Effect
             AnimatedContainer(
               duration: const Duration(seconds: 1),
               decoration: BoxDecoration(
@@ -399,7 +419,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
     );
   }
 }
-// ==================== LAYOUT PRESET PAGE (Play Store Safe) ====================
 class GfxToolPage extends StatefulWidget {
   const GfxToolPage({super.key});
   @override
@@ -408,14 +427,14 @@ class GfxToolPage extends StatefulWidget {
 class _GfxToolPageState extends State<GfxToolPage> {
   String selectedRes = "Standard"; String selectedFPS = "Balanced"; String selectedGraphics = "Smooth"; 
   bool isApplying = false;
-  bool showSuccess = false; // 4. Success Animation State
+  bool showSuccess = false; 
 
   void applySettings() {
     setState(() { isApplying = true; showSuccess = false; });
     Timer(const Duration(seconds: 2), () {
       if(mounted) {
-        setState(() { isApplying = false; showSuccess = true; }); // Show checkmark
-        Timer(const Duration(milliseconds: 1500), () => Navigator.pop(context)); // Auto close after success
+        setState(() { isApplying = false; showSuccess = true; }); 
+        Timer(const Duration(milliseconds: 1500), () => Navigator.pop(context)); 
       }
     });
   }
@@ -430,7 +449,6 @@ class _GfxToolPageState extends State<GfxToolPage> {
         const SizedBox(height: 35), _buildSectionTitle("VISUAL STYLE"), _buildOptionsRow(["Smooth", "Vivid", "Soft"], selectedGraphics, (val) => setState(() => selectedGraphics = val), Colors.purpleAccent),
         const SizedBox(height: 60),
         
-        // 4. Success Animation Button
         InkWell(
           onTap: isApplying || showSuccess ? null : applySettings, 
           borderRadius: BorderRadius.circular(25), 
@@ -463,7 +481,6 @@ class _GfxToolPageState extends State<GfxToolPage> {
   }
 }
 
-// ==================== VISUAL PRESET PAGE (Crosshair - Safe) ====================
 class CrosshairPage extends StatefulWidget {
   const CrosshairPage({super.key});
   @override
@@ -522,7 +539,6 @@ class _CrosshairPageState extends State<CrosshairPage> {
   }
 }
 
-// ==================== PRO UTILITIES PAGE (Play Store Safe) ====================
 class VipSensiPage extends StatefulWidget {
   const VipSensiPage({super.key});
   @override
