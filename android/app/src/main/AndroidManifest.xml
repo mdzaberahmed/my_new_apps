@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <application
-        android:label="FF Boost Premium"
+        android:label="Game Utility Hub"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -33,6 +33,4 @@
             android:value="ca-app-pub-1591007651969921~3667528944"/>
             
     </application>
-</manifest> 
-<uses-permission android:name="android.permission.INTERNET" />
-
+</manifest>
