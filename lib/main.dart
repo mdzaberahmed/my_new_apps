@@ -124,7 +124,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
     _loadRewardedAd(); 
   }
 
-  // 1. REAL-TIME PING ENGINE (Google DNS 8.8.8.8)
   void _initRealTimePing() {
     _pingService = Ping('8.8.8.8', interval: 2);
     _pingSubscription = _pingService!.stream.listen((event) {
@@ -139,7 +138,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
     });
   }
 
-  // 2. REAL-TIME BATTERY ENGINE
   void _initBatteryStatus() async {
     final level = await _battery.batteryLevel;
     if(mounted) setState(() => _batteryLevel = level);
@@ -183,7 +181,8 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
 
   void _loadApps() async {
     try {
-      List<AppInfo> apps = await InstalledApps.getInstalledApps(true, true);
+      // ⚠️ ERROR FIXED HERE (Added Named Parameters) ⚠️
+      List<AppInfo> apps = await InstalledApps.getInstalledApps(excludeSystemApps: true, withIcon: true);
       List<AppInfo> gameApps = apps.where((app) {
         String pkg = app.packageName?.toLowerCase() ?? '';
         return pkg.contains('freefire') || pkg.contains('dts') || pkg.contains('pubg') || pkg.contains('tencent') || pkg.contains('legends') || pkg.contains('roblox');
@@ -233,7 +232,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // REAL-TIME DASHBOARD
             Container(
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
               decoration: BoxDecoration(
@@ -245,7 +243,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // Live Ping Section
                   Column(
                     children: [
                       Row(
@@ -265,7 +262,6 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
                     ],
                   ),
                   Container(height: 60, width: 1, color: const Color(0xFFFFD700).withOpacity(0.3)),
-                  // Live Battery Section
                   _buildStatusItem(Icons.battery_charging_full_rounded, "$_batteryLevel%", "BATTERY", const Color(0xFFFFD700)),
                 ],
               ),
