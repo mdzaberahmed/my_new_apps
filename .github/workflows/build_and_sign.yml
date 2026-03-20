@@ -1,0 +1,45 @@
+name: Build and Sign Play Store AAB
+
+on:
+  workflow_dispatch: # এর মাধ্যমে আপনি যেকোনো সময় ম্যানুয়ালি বিল্ড শুরু করতে পারবেন
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Unsigned AAB
+        run: flutter build appbundle --release
+
+      - name: Sign AAB for Play Store
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: build/app/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.ENCODED_KEYSTORE }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload Signed AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: Signed-PlayStore-AAB
+          path: ${{steps.sign_app.outputs.signedReleaseFile}}
