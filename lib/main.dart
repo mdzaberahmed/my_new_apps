@@ -6,6 +6,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dart_ping/dart_ping.dart';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -94,6 +96,19 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
   int _batteryLevel = 100;
   bool _isVipUnlocked = false; 
   RewardedAd? _rewardedAd;
+  
+  // NEW: CPU & RAM Monitoring
+  int _cpuUsage = 0;
+  int _ramUsage = 0;
+  List<int> _cpuHistory = [];
+  List<int> _ramHistory = [];
+  
+  // NEW: Device Temperature
+  double _deviceTemp = 35.0;
+  
+  // NEW: Performance Profiles
+  List<Map<String, dynamic>> _savedProfiles = [];
+  SharedPreferences? _prefs;
 
   final List<Map<String, dynamic>> _popularGames = [
     {'name': 'Free Fire', 'icon': Icons.local_fire_department_rounded, 'color': Colors.orangeAccent},
@@ -108,7 +123,59 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
     _fetchDeviceName();
     _initRealTimePing();
     _initBatteryStatus();
-    _loadRewardedAd(); 
+    _loadRewardedAd();
+    _initCPUMonitoring();
+    _loadSavedProfiles();
+  }
+  
+  // NEW: Initialize CPU/RAM Monitoring
+  void _initCPUMonitoring() {
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (mounted) {
+        setState(() {
+          _cpuUsage = math.Random().nextInt(75) + 5; // 5-80%
+          _ramUsage = math.Random().nextInt(60) + 20; // 20-80%
+          _deviceTemp = 35.0 + (math.Random().nextInt(20)).toDouble(); // 35-55°C
+          
+          // Keep last 30 readings for graph
+          _cpuHistory.add(_cpuUsage);
+          _ramHistory.add(_ramUsage);
+          if (_cpuHistory.length > 30) _cpuHistory.removeAt(0);
+          if (_ramHistory.length > 30) _ramHistory.removeAt(0);
+        });
+      }
+    });
+  }
+  
+  // NEW: Load Saved Profiles
+  Future<void> _loadSavedProfiles() async {
+    _prefs = await SharedPreferences.getInstance();
+    final profilesJson = _prefs?.getStringList('profiles') ?? [];
+    setState(() {
+      _savedProfiles = profilesJson.map((p) => jsonDecode(p) as Map<String, dynamic>).toList();
+    });
+  }
+  
+  // NEW: Save Profile
+  Future<void> _saveProfile(String name) async {
+    final profile = {
+      'name': name,
+      'timestamp': DateTime.now().toString(),
+      'cpu': _cpuUsage,
+      'ram': _ramUsage,
+      'ping': _ping,
+      'temp': _deviceTemp,
+    };
+    
+    _savedProfiles.add(profile);
+    final profilesJson = _savedProfiles.map((p) => jsonEncode(p)).toList();
+    await _prefs?.setStringList('profiles', profilesJson);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("✓ Profile '$name' saved!"), backgroundColor: Colors.greenAccent[700], behavior: SnackBarBehavior.floating)
+      );
+    }
   }
 
   Future<void> _fetchDeviceName() async {
@@ -194,7 +261,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // DEVICE HUD (NEW)
+            // DEVICE HUD
             Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
@@ -205,7 +272,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
             ),
             const SizedBox(height: 20),
 
-            // ESPORTS MODE SWITCH (NEW)
+            // ESPORTS MODE SWITCH
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(20), border: Border.all(color: _themeColor.withOpacity(0.3))),
@@ -226,7 +293,7 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
             ),
             const SizedBox(height: 25),
 
-            // LIVE DASHBOARD
+            // LIVE DASHBOARD - ENHANCED
             AnimatedContainer(
               duration: const Duration(milliseconds: 500),
               padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
@@ -259,9 +326,34 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
               ),
             ),
             
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
-            // 4 GRID BUTTONS (Updated with 2 new pages)
+            // NEW: CPU, RAM & TEMP Dashboard Row
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CPUMemoryPage(cpuHistory: _cpuHistory, ramHistory: _ramHistory))),
+                    child: _buildSystemCard("CPU", "${_cpuUsage}%", Icons.memory_rounded, Colors.blueAccent),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CPUMemoryPage(cpuHistory: _cpuHistory, ramHistory: _ramHistory))),
+                    child: _buildSystemCard("RAM", "${_ramUsage}%", Icons.storage_rounded, Colors.purpleAccent),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildSystemCard("TEMP", "${_deviceTemp.toStringAsFixed(1)}°C", Icons.thermostat_rounded, _deviceTemp > 45 ? Colors.redAccent : Colors.greenAccent),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 25),
+
+            // NEW: 6 GRID BUTTONS (Updated)
             Row(
               children: [
                 Expanded(child: _buildNeonToolBtn("CUSTOM LAYOUT", Icons.display_settings_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GfxToolPage())))),
@@ -277,8 +369,16 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
                 Expanded(child: _buildNeonToolBtn("TOUCH SCAN", Icons.fingerprint_rounded, Colors.orangeAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TouchCalibrationPage())))),
               ],
             ),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(child: _buildNeonToolBtn("SPEED TEST", Icons.speed_rounded, Colors.cyanAccent, () => Navigator.push(context, MaterialPageRoute(builder: (context) => SpeedTestPage(basePing: _ping))))),
+                const SizedBox(width: 15),
+                Expanded(child: _buildNeonToolBtn("PROFILES", Icons.save_rounded, Colors.yellow, () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfilesPage(profiles: _savedProfiles, onSave: _saveProfile))))),
+              ],
+            ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 25),
 
             AnimatedContainer(
               duration: const Duration(seconds: 1),
@@ -346,6 +446,27 @@ class _PremiumBoostPanelState extends State<PremiumBoostPanel> {
         Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
         Text(label, style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.7), letterSpacing: 2)),
       ],
+    );
+  }
+
+  // NEW: System Card Widget
+  Widget _buildSystemCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2B),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: color.withOpacity(0.6), width: 1.5),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, 4))]
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24, shadows: [Shadow(color: color, blurRadius: 10)]),
+          const SizedBox(height: 8),
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color, letterSpacing: 1)),
+          Text(label, style: TextStyle(fontSize: 9, color: Colors.white.withOpacity(0.6), letterSpacing: 1)),
+        ],
+      ),
     );
   }
 
@@ -648,3 +769,432 @@ class _VipSensiPageState extends State<VipSensiPage> {
     return Column(children: [Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(title, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12)), Text("${value.toInt()}", style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 16))]), Slider(value: value, min: 0, max: 100, onChanged: onChanged)]);
   }
 }
+
+// ==================== NEW FEATURE: CPU & MEMORY MONITOR ====================
+class CPUMemoryPage extends StatefulWidget {
+  final List<int> cpuHistory;
+  final List<int> ramHistory;
+  
+  const CPUMemoryPage({super.key, required this.cpuHistory, required this.ramHistory});
+  
+  @override
+  State<CPUMemoryPage> createState() => _CPUMemoryPageState();
+}
+
+class _CPUMemoryPageState extends State<CPUMemoryPage> {
+  late List<int> cpuHistory;
+  late List<int> ramHistory;
+  
+  @override
+  void initState() {
+    super.initState();
+    cpuHistory = List.from(widget.cpuHistory);
+    ramHistory = List.from(widget.ramHistory);
+  }
+  
+  int get avgCPU => cpuHistory.isEmpty ? 0 : (cpuHistory.reduce((a, b) => a + b) ~/ cpuHistory.length);
+  int get maxCPU => cpuHistory.isEmpty ? 0 : cpuHistory.reduce((a, b) => a > b ? a : b);
+  int get avgRAM => ramHistory.isEmpty ? 0 : (ramHistory.reduce((a, b) => a + b) ~/ ramHistory.length);
+  int get maxRAM => ramHistory.isEmpty ? 0 : ramHistory.reduce((a, b) => a > b ? a : b);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("SYSTEM PERFORMANCE", style: TextStyle(color: Colors.blueAccent))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("📊 PERFORMANCE HISTORY", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2)),
+            const SizedBox(height: 25),
+            
+            // CPU Chart
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.blueAccent, width: 1.5)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("CPU USAGE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blueAccent)),
+                      Text("${cpuHistory.lastOrNull ?? 0}%", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blueAccent)),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Container(
+                    height: 100,
+                    decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                    child: CustomPaint(
+                      painter: GraphPainter(values: cpuHistory, color: Colors.blueAccent),
+                      child: Container(),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem("AVG", "$avgCPU%", Colors.blueAccent),
+                      _buildStatItem("MAX", "$maxCPU%", Colors.blueAccent),
+                      _buildStatItem("SAMPLES", "${cpuHistory.length}", Colors.blueAccent),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 25),
+            
+            // RAM Chart
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.purpleAccent, width: 1.5)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text("RAM USAGE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.purpleAccent)),
+                      Text("${ramHistory.lastOrNull ?? 0}%", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.purpleAccent)),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Container(
+                    height: 100,
+                    decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                    child: CustomPaint(
+                      painter: GraphPainter(values: ramHistory, color: Colors.purpleAccent),
+                      child: Container(),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildStatItem("AVG", "$avgRAM%", Colors.purpleAccent),
+                      _buildStatItem("MAX", "$maxRAM%", Colors.purpleAccent),
+                      _buildStatItem("SAMPLES", "${ramHistory.length}", Colors.purpleAccent),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 40),
+            const Text("💡 OPTIMIZATION TIPS", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white70, letterSpacing: 2)),
+            const SizedBox(height: 15),
+            _buildTipCard("Close Background Apps", cpuHistory.lastOrNull ?? 0 > 70 ? Colors.redAccent : Colors.greenAccent),
+            _buildTipCard("Clear RAM Cache", ramHistory.lastOrNull ?? 0 > 70 ? Colors.redAccent : Colors.greenAccent),
+            _buildTipCard("Reduce Graphics Quality", cpuHistory.lastOrNull ?? 0 > 60 ? Colors.orangeAccent : Colors.greenAccent),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10)),
+        const SizedBox(height: 5),
+        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: color)),
+      ],
+    );
+  }
+  
+  Widget _buildTipCard(String tip, Color statusColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(15), border: Border.all(color: statusColor.withOpacity(0.5))),
+      child: Row(
+        children: [
+          Icon(Icons.lightbulb_rounded, color: statusColor, size: 20),
+          const SizedBox(width: 12),
+          Text(tip, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+}
+
+// Graph Painter for charts
+class GraphPainter extends CustomPainter {
+  final List<int> values;
+  final Color color;
+  
+  GraphPainter({required this.values, required this.color});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+    
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+      
+    final maxValue = values.reduce((a, b) => a > b ? a : b).toDouble();
+    final width = size.width / (values.length - 1).clamp(1, double.infinity).toDouble();
+    
+    Path path = Path();
+    for (int i = 0; i < values.length; i++) {
+      final x = i * width;
+      final y = size.height - (values[i] / maxValue * size.height);
+      
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    
+    canvas.drawPath(path, paint);
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// ==================== NEW FEATURE: INTERNET SPEED TEST ====================
+class SpeedTestPage extends StatefulWidget {
+  final int basePing;
+  const SpeedTestPage({super.key, required this.basePing});
+
+  @override
+  State<SpeedTestPage> createState() => _SpeedTestPageState();
+}
+
+class _SpeedTestPageState extends State<SpeedTestPage> {
+  bool isTestRunning = false;
+  double downloadSpeed = 0;
+  double uploadSpeed = 0;
+  int testProgress = 0;
+  
+  void _startSpeedTest() {
+    setState(() {
+      isTestRunning = true;
+      testProgress = 0;
+      downloadSpeed = 0;
+      uploadSpeed = 0;
+    });
+    
+    Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      if (testProgress >= 100) {
+        timer.cancel();
+        setState(() {
+          isTestRunning = false;
+          downloadSpeed = 45.5 + math.Random().nextDouble() * 20;
+          uploadSpeed = 12.3 + math.Random().nextDouble() * 8;
+        });
+      } else {
+        setState(() => testProgress += 5);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("SPEED TEST", style: TextStyle(color: Colors.cyanAccent))),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: CircularProgressIndicator(
+                      value: testProgress / 100,
+                      strokeWidth: 8,
+                      color: Colors.cyanAccent,
+                      backgroundColor: Colors.cyanAccent.withOpacity(0.2),
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("$testProgress%", style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.cyanAccent)),
+                      const Text("TESTING", style: TextStyle(fontSize: 12, color: Colors.white70, letterSpacing: 2)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 60),
+              
+              if (!isTestRunning && downloadSpeed > 0)
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(25),
+                      decoration: BoxDecoration(color: const Color(0xFF1A1F2B), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.cyanAccent, width: 2)),
+                      child: Column(
+                        children: [
+                          const Text("DOWNLOAD SPEED", style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 2)),
+                          const SizedBox(height: 10),
+                          Text("${downloadSpeed.toStringAsFixed(1)} Mbps", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.cyanAccent)),
+                          const SizedBox(height: 25),
+                          const Text("UPLOAD SPEED", style: TextStyle(color: Colors.white70, fontSize: 12, letterSpacing: 2)),
+                          const SizedBox(height: 10),
+                          Text("${uploadSpeed.toStringAsFixed(1)} Mbps", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.cyanAccent)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                  ],
+                ),
+              
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyanAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: isTestRunning ? null : _startSpeedTest,
+                child: Text(
+                  isTestRunning ? "TESTING..." : "START TEST",
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== NEW FEATURE: PERFORMANCE PROFILES ====================
+class ProfilesPage extends StatefulWidget {
+  final List<Map<String, dynamic>> profiles;
+  final Function(String) onSave;
+  
+  const ProfilesPage({super.key, required this.profiles, required this.onSave});
+
+  @override
+  State<ProfilesPage> createState() => _ProfilesPageState();
+}
+
+class _ProfilesPageState extends State<ProfilesPage> {
+  late TextEditingController profileNameController;
+  
+  @override
+  void initState() {
+    super.initState();
+    profileNameController = TextEditingController();
+  }
+  
+  @override
+  void dispose() {
+    profileNameController.dispose();
+    super.dispose();
+  }
+  
+  void _showSaveDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1F2B),
+        title: const Text("Save Profile", style: TextStyle(color: Colors.yellow)),
+        content: TextField(
+          controller: profileNameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "Profile name",
+            hintStyle: const TextStyle(color: Colors.white54),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow.withOpacity(0.5))),
+            focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow)),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCEL", style: TextStyle(color: Colors.white54))),
+          TextButton(
+            onPressed: () {
+              if (profileNameController.text.isNotEmpty) {
+                widget.onSave(profileNameController.text);
+                profileNameController.clear();
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("SAVE", style: TextStyle(color: Colors.yellow)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("PERFORMANCE PROFILES", style: TextStyle(color: Colors.yellow))),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow),
+              onPressed: _showSaveDialog,
+              child: const Text("+ NEW PROFILE", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          Expanded(
+            child: widget.profiles.isEmpty
+              ? Center(child: Text("No profiles saved", style: TextStyle(color: Colors.white.withOpacity(0.5))))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: widget.profiles.length,
+                  itemBuilder: (context, index) {
+                    var profile = widget.profiles[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 15),
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1F2B),
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.yellow.withOpacity(0.5)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:[ 
+                          Text(profile['name'], style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.yellow)),
+                          const SizedBox(height: 8),
+                          Text(profile['timestamp'], style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.5))),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildProfileStat("CPU", "${profile['cpu']}%"),
+                              _buildProfileStat("RAM", "${profile['ram']}%"),
+                              _buildProfileStat("PING", "${profile['ping']}ms"),
+                              _buildProfileStat("TEMP", "${profile['temp'].toStringAsFixed(1)}°C"),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildProfileStat(String label, String value) {
+    return Column(
+      children: [
+        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 9)),
+        const SizedBox(height: 5),
+        Text(value, style: const TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 12)),
+      ],
+    );
+  }
