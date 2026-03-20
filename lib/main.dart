@@ -920,6 +920,7 @@ class _CPUMemoryPageState extends State<CPUMemoryPage> {
     );
   }
 }
+}
 
 // Graph Painter for charts
 class GraphPainter extends CustomPainter {
